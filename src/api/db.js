@@ -20,6 +20,7 @@ const CASE_LIST_SELECT = `
   responsible_role,
   closed_at,
   seguimiento_started_at,
+  indagacion_due_date,
   students(first_name, last_name, rut)
 `;
 const CONTROL_UNIFICADO_SELECT = `
@@ -283,6 +284,95 @@ export async function getCases(status = null) {
     return (data || []).map(mapCaseRow);
   } catch (error) {
     logger.error('Error fetching cases:', error);
+    throw error;
+  }
+}
+
+/**
+ * Obtener lista de casos con paginación y búsqueda (select reducido)
+ * @param {Object} options
+ * @param {string|null} options.status - estado exacto (ej: 'Cerrado')
+ * @param {string|null} options.excludeStatus - estado a excluir (ej: 'Cerrado')
+ * @param {string} options.search - texto de búsqueda
+ * @param {number} options.page - página (1-based)
+ * @param {number} options.pageSize - tamaño de página
+ * @returns {Promise<{ rows: Array, total: number }>}
+ */
+export async function getCasesPage({
+  status = null,
+  excludeStatus = null,
+  search = '',
+  page = 1,
+  pageSize = 10,
+} = {}) {
+  try {
+    const q = String(search || '').trim();
+    const from = Math.max(0, (Number(page) - 1) * Number(pageSize));
+    const to = Math.max(from, from + Number(pageSize) - 1);
+
+    let studentIds = [];
+    if (q) {
+      const { data: studentsData, error: studentsError } = await withRetry(() =>
+        supabase
+          .from('students')
+          .select('id')
+          .or(
+            `first_name.ilike.%${q}%,last_name.ilike.%${q}%,rut.ilike.%${q}%`,
+          )
+          .limit(500),
+      );
+      if (studentsError) throw studentsError;
+      studentIds = (studentsData || []).map((s) => s.id).filter(Boolean);
+    }
+
+    let query = supabase
+      .from('cases')
+      .select(CASE_LIST_SELECT, { count: 'exact' });
+
+    if (status) query = query.eq('status', status);
+    if (excludeStatus) query = query.neq('status', excludeStatus);
+
+    if (q) {
+      const orParts = [
+        `course_incident.ilike.%${q}%`,
+        `conduct_type.ilike.%${q}%`,
+        `conduct_category.ilike.%${q}%`,
+        `short_description.ilike.%${q}%`,
+        `status.ilike.%${q}%`,
+      ];
+      if (studentIds.length > 0) {
+        const quotedIds = studentIds.map((id) => `"${id}"`).join(',');
+        orParts.push(`student_id.in.(${quotedIds})`);
+      }
+      query = query.or(orParts.join(','));
+    }
+
+    const { data, error, count } = await withRetry(() =>
+      query
+        .order('incident_date', { ascending: false })
+        .range(from, to),
+    );
+
+    if (error) throw error;
+    return { rows: (data || []).map(mapCaseRow), total: count || 0 };
+  } catch (error) {
+    logger.error('Error fetching cases page:', error);
+    throw error;
+  }
+}
+
+/**
+ * Obtener todos los casos con select reducido (para dashboard)
+ */
+export async function getCasesLiteAll() {
+  try {
+    const { data, error } = await withRetry(() =>
+      supabase.from('cases').select(CASE_LIST_SELECT),
+    );
+    if (error) throw error;
+    return (data || []).map(mapCaseRow);
+  } catch (error) {
+    logger.error('Error fetching cases (lite):', error);
     throw error;
   }
 }

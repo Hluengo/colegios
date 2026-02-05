@@ -1,4 +1,4 @@
-import {
+﻿import {
   AlertTriangle,
   Clock,
   Activity,
@@ -24,7 +24,7 @@ import { Bar } from 'recharts/es6/cartesian/Bar';
 
 import StatCard from '../components/StatCard';
 import UrgentCaseCard from '../components/UrgentCaseCard';
-import { getCases, getAllControlAlertas } from '../api/db';
+import { getCasesLiteAll, getAllControlAlertas } from '../api/db';
 import { formatDate } from '../utils/formatDate';
 import { onDataUpdated } from '../utils/refreshBus';
 import { useToast } from '../hooks/useToast';
@@ -100,7 +100,7 @@ export default function Dashboard() {
     data: allCases,
     loading: loadingCases,
     error: errorCases,
-  } = useCachedAsync('cases:all', () => getCases(), [refreshKey], {
+  } = useCachedAsync('cases:lite', () => getCasesLiteAll(), [refreshKey], {
     ttlMs: 30000,
   });
 
@@ -146,7 +146,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     const off = onDataUpdated(() => {
-      clearCache('cases:all');
+      clearCache('cases:lite');
       clearCache('control_alertas');
       setRefreshKey((k) => k + 1);
     });
@@ -160,7 +160,7 @@ export default function Dashboard() {
         title="Error al cargar dashboard"
         message={error?.message || 'Fallo de red'}
         onRetry={() => {
-          clearCache('cases:all');
+          clearCache('cases:lite');
           clearCache('control_alertas');
           setRefreshKey((k) => k + 1);
         }}
@@ -168,7 +168,7 @@ export default function Dashboard() {
     );
 
   /* =========================
-     MÉTRICAS CASOS
+     MÃ‰TRICAS CASOS
   ========================== */
 
   const totalActivos = casosActivos.length;
@@ -179,11 +179,11 @@ export default function Dashboard() {
     totalCasos > 0 ? Math.round((totalCerrados / totalCasos) * 100) : 0;
 
   const casosUrgentes = casosActivos.filter((c) =>
-    ['Muy Grave', 'Gravísima'].includes(c.fields?.Tipificacion_Conducta),
+    ['Muy Grave', 'GravÃ­sima'].includes(c.fields?.Tipificacion_Conducta),
   );
 
   const hoyISO = new Date().toISOString().slice(0, 10);
-  logger.debug('📅 Fecha de hoy:', hoyISO);
+  logger.debug('ðŸ“… Fecha de hoy:', hoyISO);
 
   const casosHoy = casosActivos.filter((c) => {
     const fechaCreacion = c.fields?.Fecha_Creacion;
@@ -195,7 +195,7 @@ export default function Dashboard() {
 
     if (esHoy) {
       logger.debug(
-        '✅ Caso creado hoy:',
+        'âœ… Caso creado hoy:',
         c.fields?.Estudiante_Responsable,
         fechaCreacion,
       );
@@ -203,25 +203,25 @@ export default function Dashboard() {
     return esHoy;
   });
 
-  logger.debug('📊 Total casos creados hoy:', casosHoy.length);
+  logger.debug('ðŸ“Š Total casos creados hoy:', casosHoy.length);
 
   /* =========================
-     MÉTRICAS PLAZOS
+     MÃ‰TRICAS PLAZOS
   ========================== */
 
   const resumenPlazos = { rojos: 0, naranjos: 0, amarillos: 0 };
 
   alertasPlazo.forEach((a) => {
     const txt = a.fields?.Alerta_Urgencia || '';
-    if (txt.startsWith('🔴')) resumenPlazos.rojos++;
-    else if (txt.startsWith('🟠')) resumenPlazos.naranjos++;
-    else if (txt.startsWith('🟡')) resumenPlazos.amarillos++;
+    if (txt.startsWith('ðŸ”´')) resumenPlazos.rojos++;
+    else if (txt.startsWith('ðŸŸ ')) resumenPlazos.naranjos++;
+    else if (txt.startsWith('ðŸŸ¡')) resumenPlazos.amarillos++;
   });
 
-  // ✅ “Próximos a vencer ≤ 3 días” = naranjos + amarillos (según lógica de alertas)
+  // âœ… â€œPrÃ³ximos a vencer â‰¤ 3 dÃ­asâ€ = naranjos + amarillos (segÃºn lÃ³gica de alertas)
   const proximosAVencer = resumenPlazos.naranjos + resumenPlazos.amarillos;
 
-  // Top alertas para listado (orden por días)
+  // Top alertas para listado (orden por dÃ­as)
   const topAlertas = [...alertasPlazo]
     .sort((a, b) => {
       const da = a.fields?.Dias_Restantes;
@@ -234,10 +234,10 @@ export default function Dashboard() {
     .slice(0, 6);
 
   /* =========================
-     GRÁFICOS (DATA)
+     GRÃFICOS (DATA)
   ========================== */
 
-  // 1) Casos activos por tipificación (pie)
+  // 1) Casos activos por tipificaciÃ³n (pie)
   const porTipo = {};
   casosActivos.forEach((c) => {
     const t = c.fields?.Tipificacion_Conducta || 'Sin dato';
@@ -249,20 +249,20 @@ export default function Dashboard() {
   }));
 
   // 2) Plazos (pie)
-  // Reorder and recolor: Próximos (verde), Urgentes (morado), Vencidos (rojo)
+  // Reorder and recolor: PrÃ³ximos (verde), Urgentes (morado), Vencidos (rojo)
   const dataPlazos = [
-    { name: 'Próximos', value: resumenPlazos.amarillos },
+    { name: 'PrÃ³ximos', value: resumenPlazos.amarillos },
     { name: 'Urgentes', value: resumenPlazos.naranjos },
     { name: 'Vencidos', value: resumenPlazos.rojos },
   ];
 
   const PLAZOS_COLORS = {
-    Próximos: '#16a34a',
+    PrÃ³ximos: '#16a34a',
     Urgentes: '#7c3aed',
     Vencidos: '#dc2626',
   };
 
-  // 3) Casos por curso (bar) — solo activos
+  // 3) Casos por curso (bar) â€” solo activos
   const porCurso = {};
   casosActivos.forEach((c) => {
     const curso = c.fields?.Curso_Incidente || 'Sin curso';
@@ -282,22 +282,22 @@ export default function Dashboard() {
   return (
     <div className="container space-y-8">
       <p className="text-sm text-slate-600 font-medium">
-        Resumen Operativo de Convivencia Escolar · Año lectivo 2026
+        Resumen Operativo de Convivencia Escolar Â· AÃ±o lectivo 2026
       </p>
 
-      {/* KPIs – FILA 1 */}
+      {/* KPIs â€“ FILA 1 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard
-          title="Atención Prioritaria"
+          title="AtenciÃ³n Prioritaria"
           value={casosUrgentes.length}
-          subtitle="Muy graves y gravísimos activos"
+          subtitle="Muy graves y gravÃ­simos activos"
           icon={<AlertTriangle className="text-white" size={20} />}
           color="bg-red-600"
           onClick={() => navigate('/casos-activos?tip=Muy%20Grave')}
         />
 
         <StatCard
-          title="Plazos Críticos"
+          title="Plazos CrÃ­ticos"
           value={resumenPlazos.rojos}
           subtitle="Investigaciones vencidas"
           icon={<Timer className="text-white" size={20} />}
@@ -306,21 +306,21 @@ export default function Dashboard() {
         />
 
         <StatCard
-          title="Próximos a vencer"
+          title="PrÃ³ximos a vencer"
           value={proximosAVencer}
-          subtitle="≤ 3 días"
+          subtitle="â‰¤ 3 dÃ­as"
           icon={<Clock className="text-white" size={20} />}
           color="bg-orange-500"
           onClick={() => navigate('/alertas?filter=proximos')}
         />
       </div>
 
-      {/* KPIs – FILA 2 */}
+      {/* KPIs â€“ FILA 2 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard
           title="Casos en curso"
           value={totalActivos}
-          subtitle="Investigación o seguimiento"
+          subtitle="InvestigaciÃ³n o seguimiento"
           icon={<Activity className="text-white" size={20} />}
           color="bg-amber-500"
           onClick={() => navigate('/casos-activos')}
@@ -338,19 +338,19 @@ export default function Dashboard() {
         <StatCard
           title="Casos registrados hoy"
           value={casosHoy.length}
-          subtitle="Incidentes del día"
+          subtitle="Incidentes del dÃ­a"
           icon={<Clock className="text-white" size={20} />}
           color="bg-blue-600"
           onClick={() => navigate('/casos-activos?created=today')}
         />
       </div>
 
-      {/* GRÁFICOS */}
+      {/* GRÃFICOS */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-slate-800">
-              Casos activos por tipificación
+              Casos activos por tipificaciÃ³n
             </h3>
             <div className="flex items-center gap-2"></div>
           </div>
@@ -492,7 +492,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-bold text-slate-800 flex items-center gap-2">
               <AlertTriangle size={18} className="text-red-600" />
-              Casos que requieren atención inmediata
+              Casos que requieren atenciÃ³n inmediata
             </h2>
             <div className="flex items-center gap-2">
               <button
@@ -509,10 +509,10 @@ export default function Dashboard() {
               <ShieldCheck size={18} className="text-green-600 mt-0.5" />
               <div>
                 <p className="font-semibold text-green-800">
-                  Situación controlada
+                  SituaciÃ³n controlada
                 </p>
                 <p className="text-sm text-green-700">
-                  No se registran casos que requieran atención inmediata.
+                  No se registran casos que requieran atenciÃ³n inmediata.
                 </p>
               </div>
             </div>
@@ -531,7 +531,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* ALERTAS DE PLAZOS (clic → Seguimiento) */}
+        {/* ALERTAS DE PLAZOS (clic â†’ Seguimiento) */}
         <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-gray-900">Alertas de Plazos</h2>
@@ -542,7 +542,7 @@ export default function Dashboard() {
             <div className="p-4 rounded-lg bg-gray-50 border text-sm text-gray-600">
               No hay alertas activas.
               <div className="text-xs text-gray-400 mt-1">
-                Revisión automática cada 24 horas
+                RevisiÃ³n automÃ¡tica cada 24 horas
               </div>
             </div>
           ) : (
@@ -552,13 +552,13 @@ export default function Dashboard() {
                 const disabled = !casoId;
 
                 const alertaTxt = a.fields?.Alerta_Urgencia || '';
-                const plazoKey = alertaTxt.startsWith('🔴')
+                const plazoKey = alertaTxt.startsWith('ðŸ”´')
                   ? 'Vencidos'
-                  : alertaTxt.startsWith('🟠')
+                  : alertaTxt.startsWith('ðŸŸ ')
                     ? 'Urgentes'
-                    : alertaTxt.startsWith('🟡')
-                      ? 'Próximos'
-                      : 'Próximos';
+                    : alertaTxt.startsWith('ðŸŸ¡')
+                      ? 'PrÃ³ximos'
+                      : 'PrÃ³ximos';
 
                 return (
                   <div
@@ -591,19 +591,19 @@ export default function Dashboard() {
                           <p className="text-xs text-gray-600 truncate">
                             {a._supabaseData?.estudiante
                               ? `Estudiante: ${a._supabaseData.estudiante}`
-                              : `Responsable: ${a.fields?.Responsable || '—'}`}
+                              : `Responsable: ${a.fields?.Responsable || 'â€”'}`}
                           </p>
                         </div>
                       </div>
 
                       <div className="text-right shrink-0">
                         <div className="text-xs font-semibold">
-                          {a.fields?.Alerta_Urgencia || '⏳'}
+                          {a.fields?.Alerta_Urgencia || 'â³'}
                         </div>
                         <div className="text-[11px] text-gray-500">
                           {typeof a.fields?.Dias_Restantes === 'number'
-                            ? `${a.fields.Dias_Restantes} días`
-                            : '—'}
+                            ? `${a.fields.Dias_Restantes} dÃ­as`
+                            : 'â€”'}
                           <div className="text-[11px] text-gray-400">
                             {a.fields?.Fecha_Plazo
                               ? formatDate(a.fields.Fecha_Plazo)
@@ -620,7 +620,7 @@ export default function Dashboard() {
                 onClick={() => navigate('/alertas')}
                 className="text-sm text-red-600 hover:underline"
               >
-                Ver todas las alertas →
+                Ver todas las alertas â†’
               </button>
             </div>
           )}
@@ -629,3 +629,4 @@ export default function Dashboard() {
     </div>
   );
 }
+
