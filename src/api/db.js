@@ -3,6 +3,13 @@ import { withRetry } from './withRetry';
 import { logger } from '../utils/logger';
 import { normalizeCase } from '../domain/case';
 import { getEvidencePublicUrl, getEvidenceSignedUrl } from './evidence';
+import {
+  caseInsertSchema,
+  caseUpdateSchema,
+  followupInsertSchema,
+  followupUpdateSchema,
+  validateOrThrow,
+} from '../utils/schemas';
 
 const EMPTY = '';
 const DEFAULT_STUDENT = 'N/A';
@@ -526,6 +533,7 @@ export async function getCase(id) {
 export async function createCase(fields) {
   try {
     const insertData = buildCaseInsert(fields);
+    validateOrThrow(caseInsertSchema, insertData, 'Caso');
 
     // Temporal: mostrar payload para verificar keys antes del insert
     console.log('createCase payload', insertData);
@@ -562,6 +570,7 @@ export async function updateCase(id, fields) {
     }
 
     const updates = buildCaseUpdate(fields);
+    validateOrThrow(caseUpdateSchema, updates, 'Actualización de caso');
 
     const { data, error } = await withRetry(() =>
       supabase
@@ -729,6 +738,7 @@ export async function createFollowup(input) {
       responsible: isNew ? (input.responsible || 'Sistema') : input?.Responsable || 'Sistema',
       observations: isNew ? (input.observations || '') : input?.Observaciones || '',
     };
+    validateOrThrow(followupInsertSchema, row, 'Seguimiento');
 
     if (!row.process_stage) throw new Error('Se requiere process_stage');
     if (!row.action_type) throw new Error('Se requiere action_type');
@@ -795,6 +805,7 @@ export async function updateFollowup(idOrObj, fieldsMaybe = {}) {
     if (fields.Descripcion !== undefined) payload.description = fields.Descripcion;
 
     logger.debug('📦 updateFollowup payload:', payload);
+    validateOrThrow(followupUpdateSchema, payload, 'Actualización de seguimiento');
 
     const { data, error } = await withRetry(() =>
       supabase.from('case_followups').update(payload).eq('id', id).select().single(),
