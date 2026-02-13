@@ -104,7 +104,7 @@ export default function Estadisticas() {
   const dataTipo = useMemo(() => {
     return (
       stats?.charts?.porTip?.map((item) => ({
-        name: item.tipificacion,
+        name: item.tipo ?? item.tipificacion ?? 'Sin tipificación',
         value: Number(item.total),
       })) ?? []
     );
@@ -501,7 +501,7 @@ export default function Estadisticas() {
                         <button
                           onClick={() =>
                             navigate(
-                              `/seguimientos?estudiante=${encodeURIComponent(r.estudiante)}`,
+                              `/casos-activos?estudiante=${encodeURIComponent(r.estudiante)}`,
                             )
                           }
                           className="text-left font-semibold text-brand-600 hover:text-brand-800 hover:underline flex items-center gap-2"

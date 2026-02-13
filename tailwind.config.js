@@ -43,6 +43,15 @@ export default {
         'glass-sm': '0 4px 16px 0 rgba(15, 23, 42, 0.04)',
         soft: '0 6px 18px rgba(2,6,23,0.08)',
       },
+      borderRadius: {
+        // Estandarizar radios de bordes
+        sm: '0.375rem',   // 6px
+        DEFAULT: '0.5rem',  // 8px
+        lg: '0.75rem',    // 12px
+        xl: '1rem',       // 16px
+        '2xl': '1.5rem',  // 24px
+        '3xl': '2rem',    // 32px
+      },
       backdropBlur: {
         xs: '2px',
       },

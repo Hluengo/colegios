@@ -147,7 +147,15 @@ export default function Layout() {
   }, [isMobile]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 selection:bg-accent-500/30">
+    <>
+      {/* Skip Link para accesibilidad */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-brand-600 focus:text-white focus:rounded-lg focus:font-semibold"
+      >
+        Saltar al contenido principal
+      </a>
+      <div className="flex h-screen overflow-hidden bg-slate-50 selection:bg-accent-500/30">
       {/* Background Gradients (Global) */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-300/10 rounded-full blur-[120px] animate-pulse-slow" />
@@ -158,7 +166,7 @@ export default function Layout() {
       <Sidebar />
 
       {/* CONTENT AREA */}
-      <main className="flex-1 flex flex-col relative z-10 m-2 ml-0 sm:ml-2.5 bg-white/40 backdrop-blur-xl border border-white/50 shadow-glass rounded-3xl overflow-hidden transition-all duration-300">
+      <main id="main-content" className="flex-1 flex flex-col relative z-10 m-2 ml-0 sm:ml-2.5 bg-white/40 backdrop-blur-xl border border-white/50 shadow-glass rounded-3xl overflow-hidden transition-all duration-300">
         {/* HEADER SUPERIOR */}
         <div className="flex justify-between items-center px-5 py-3 shrink-0 border-b border-white/40">
           {/* Mobile Hamburger */}
@@ -210,5 +218,6 @@ export default function Layout() {
         />
       )}
     </div>
+    </>
   );
 }

@@ -38,54 +38,55 @@ export async function loadEstadisticas({ desde, hasta }) {
       return EMPTY_STATS;
     }
 
-    // Ejecutar todas las RPC en paralelo para mejor rendimiento
-    const [
-      kpisRes,
-      plazosRes,
-      reincRes,
-      cargaRes,
-      mayorNivelRes,
-      promSegRes,
-      promDiasRes,
-      porMesRes,
-      porTipRes,
-      porCursoRes,
-    ] = await Promise.all([
-      withRetry(() => supabase.rpc('stats_kpis', { desde, hasta })),
-      withRetry(() =>
-        supabase.rpc('stats_cumplimiento_plazos', { desde, hasta }),
-      ),
-      withRetry(() => supabase.rpc('stats_reincidencia', { desde, hasta })),
-      withRetry(() => supabase.rpc('stats_mayor_carga', { desde, hasta })),
-      withRetry(() => supabase.rpc('stats_mayor_nivel', { desde, hasta })),
-      withRetry(() =>
-        supabase.rpc('stats_promedio_seguimientos_por_caso', { desde, hasta }),
-      ),
-      withRetry(() =>
-        supabase.rpc('stats_tiempo_primer_seguimiento', { desde, hasta }),
-      ),
-      withRetry(() => supabase.rpc('stats_casos_por_mes', { desde, hasta })),
-      withRetry(() =>
-        supabase.rpc('stats_casos_por_tipificacion', { desde, hasta }),
-      ),
-      withRetry(() => supabase.rpc('stats_casos_por_curso', { desde, hasta })),
-    ]);
+    const rpcCalls = [
+      ['stats_kpis', () => supabase.rpc('stats_kpis', { desde, hasta })],
+      [
+        'stats_cumplimiento_plazos',
+        () => supabase.rpc('stats_cumplimiento_plazos', { desde, hasta }),
+      ],
+      [
+        'stats_reincidencia',
+        () => supabase.rpc('stats_reincidencia', { desde, hasta }),
+      ],
+      ['stats_mayor_carga', () => supabase.rpc('stats_mayor_carga', { desde, hasta })],
+      ['stats_mayor_nivel', () => supabase.rpc('stats_mayor_nivel', { desde, hasta })],
+      [
+        'stats_promedio_seguimientos_por_caso',
+        () => supabase.rpc('stats_promedio_seguimientos_por_caso', { desde, hasta }),
+      ],
+      [
+        'stats_tiempo_primer_seguimiento',
+        () => supabase.rpc('stats_tiempo_primer_seguimiento', { desde, hasta }),
+      ],
+      ['stats_casos_por_mes', () => supabase.rpc('stats_casos_por_mes', { desde, hasta })],
+      [
+        'stats_casos_por_tipificacion',
+        () => supabase.rpc('stats_casos_por_tipificacion', { desde, hasta }),
+      ],
+      ['stats_casos_por_curso', () => supabase.rpc('stats_casos_por_curso', { desde, hasta })],
+    ];
 
-    // Manejo de errores consolidado
-    const errors = [
-      kpisRes.error,
-      plazosRes.error,
-      reincRes.error,
-      cargaRes.error,
-      mayorNivelRes.error,
-      porMesRes.error,
-      porTipRes.error,
-      porCursoRes.error,
-    ].filter(Boolean);
+    const rpcResults = await Promise.all(
+      rpcCalls.map(async ([name, fn]) => {
+        const res = await withRetry(fn);
+        if (res.error) {
+          throw new Error(`[${name}] ${res.error.message}`);
+        }
+        return [name, res];
+      }),
+    );
 
-    if (errors.length) {
-      throw new Error(`Error en RPC: ${errors[0].message}`);
-    }
+    const rpcMap = Object.fromEntries(rpcResults);
+    const kpisRes = rpcMap.stats_kpis;
+    const plazosRes = rpcMap.stats_cumplimiento_plazos;
+    const reincRes = rpcMap.stats_reincidencia;
+    const cargaRes = rpcMap.stats_mayor_carga;
+    const mayorNivelRes = rpcMap.stats_mayor_nivel;
+    const promSegRes = rpcMap.stats_promedio_seguimientos_por_caso;
+    const promDiasRes = rpcMap.stats_tiempo_primer_seguimiento;
+    const porMesRes = rpcMap.stats_casos_por_mes;
+    const porTipRes = rpcMap.stats_casos_por_tipificacion;
+    const porCursoRes = rpcMap.stats_casos_por_curso;
 
     // Extraer datos con valores por defecto
     const kpis = pickSingle(kpisRes.data, EMPTY_STATS.kpis);
@@ -104,16 +105,22 @@ export async function loadEstadisticas({ desde, hasta }) {
       );
 
       if (!casesErr && casesInRange && casesInRange.length) {
-        const counts = {};
+        const byStudentId = new Map();
         casesInRange.forEach((r) => {
+          const studentId = r.student_id;
+          if (!studentId) return;
+
           const first = r.students?.first_name || '';
           const last = r.students?.last_name || '';
-          const full = `${first} ${last}`.trim() || 'Sin nombre';
-          counts[full] = (counts[full] || 0) + 1;
+          const estudiante = `${first} ${last}`.trim() || 'Sin nombre';
+          const current = byStudentId.get(studentId) || { estudiante, total: 0 };
+          byStudentId.set(studentId, {
+            estudiante: current.estudiante || estudiante,
+            total: current.total + 1,
+          });
         });
 
-        reincidentesList = Object.entries(counts)
-          .map(([estudiante, total]) => ({ estudiante, total }))
+        reincidentesList = Array.from(byStudentId.values())
           .filter((x) => x.total >= 2)
           .sort((a, b) => b.total - a.total);
       }

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { X } from 'lucide-react';
 import { createCase, addInvolucrado } from '../api/db';
 import { logger } from '../utils/logger';
 import { supabase } from '../api/supabaseClient';
@@ -264,7 +265,6 @@ export default function NuevoCasoModal({ onClose, onSaved }) {
         title: 'Caso creado',
         message: 'El caso se guardó exitosamente',
       });
-      alert('Caso creado correctamente');
       onSaved?.();
       onClose?.();
     } catch (e) {
@@ -274,7 +274,6 @@ export default function NuevoCasoModal({ onClose, onSaved }) {
         title: 'Error al guardar',
         message: e?.message || 'Intenta nuevamente',
       });
-      alert('Error al guardar el caso: ' + e.message);
     } finally {
       setGuardando(false);
     }
@@ -306,7 +305,7 @@ export default function NuevoCasoModal({ onClose, onSaved }) {
               className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-700 tap-target"
               aria-label="Cerrar"
             >
-              ✕
+              <X size={18} />
             </button>
           </div>
 

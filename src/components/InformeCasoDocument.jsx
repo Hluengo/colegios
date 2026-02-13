@@ -330,7 +330,8 @@ export default function InformeCasoDocument({ caso, seguimientos = [] }) {
                 seg.description ||
                 'Sin descripción';
               const plazo = seg.due_date;
-              const estadoEtapa = seg.stage_status || '—';
+              // stage_status eliminado - cada followup representa una acción completada
+              const estadoEtapa = 'Completada';
 
               return (
                 <View key={seg.id || i} style={styles.timelineItem}>

@@ -65,8 +65,8 @@ export function useDueProcess(casoId, refreshKey = 0) {
     const completedSet = new Set();
     (followups || []).forEach((f) => {
       const k = norm(f?.process_stage);
-      const estado = (f?.stage_status || '').trim();
-      if (k && estado === 'Completada') completedSet.add(k);
+      // stage_status eliminado - cada followup representa una acción completada
+      if (k) completedSet.add(k);
     });
 
     const completedStageKeys = stages.filter((k) => completedSet.has(k));

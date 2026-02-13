@@ -12,7 +12,8 @@ function Badge({ children, tone = 'slate' }) {
   const toneMap = {
     slate: 'bg-slate-100 text-slate-800 border-slate-200',
     green: 'bg-green-100 text-green-800 border-green-200',
-    amber: 'bg-amber-100 text-amber-800 border-amber-200',
+    // Grave = amber (usar amber-200 para mejor contraste)
+    amber: 'bg-amber-200 text-amber-800 border-amber-300',
     red: 'bg-red-100 text-red-800 border-red-200',
     purple: 'bg-purple-100 text-purple-800 border-purple-200',
   };

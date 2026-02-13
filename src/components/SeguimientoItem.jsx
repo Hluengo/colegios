@@ -9,12 +9,6 @@ import {
 import { useToast } from '../hooks/useToast';
 
 export default function SeguimientoItem({ seg, readOnly = false }) {
-  const estadoColor = {
-    Pendiente: 'bg-amber-100 text-amber-800',
-    'En Proceso': 'bg-sky-100 text-sky-800',
-    Completada: 'bg-teal-100 text-teal-800',
-  };
-
   const [evidencias, setEvidencias] = useState([]);
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
@@ -125,12 +119,9 @@ export default function SeguimientoItem({ seg, readOnly = false }) {
           </p>
 
           <span
-            className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
-              estadoColor[seg.stage_status] ||
-              'bg-slate-100 text-slate-600'
-            }`}
+            className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700"
           >
-            {seg.stage_status || 'Completada'}
+            Completada
           </span>
         </div>
 

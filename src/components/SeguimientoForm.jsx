@@ -3,8 +3,9 @@ import { createFollowup, getResponsables } from '../api/db';
 import { uploadEvidenceFiles } from '../api/evidence';
 import { DUE_PROCESS_STAGES } from '../constants/dueProcessStages';
 import { useToast } from '../hooks/useToast';
+import useActionTypes from '../hooks/useActionTypes';
 
-const ACTION_TYPES = ['Entrevista', 'Notificación', 'Recopilación', 'Medida', 'Indagación', 'Resolución', 'Apelación', 'Monitoreo'];
+// ACTION_TYPES ahora se carga dinámicamente desde Supabase via hook useActionTypes
 
 function todayISODate() {
   return new Date().toISOString().slice(0, 10);
@@ -17,6 +18,7 @@ export default function SeguimientoForm({
   onSaved,
 }) {
   const { push } = useToast();
+  const { actions: actionTypes, loading: loadingActions } = useActionTypes();
   const [responsables, setResponsables] = useState([]);
   const [submitting, setSubmitting] = useState(false);
 
@@ -29,6 +31,7 @@ export default function SeguimientoForm({
   });
 
   const [files, setFiles] = useState([]);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -71,7 +74,7 @@ export default function SeguimientoForm({
         action_date: todayISODate(),
         action_type: form.action_type,
         process_stage: form.process_stage,
-        stage_status: 'Completada',
+        // stage_status eliminado - cada followup representa una acción completada
         detail: form.detail,
         responsible: form.responsible || 'Sistema',
         observations: form.observations,
@@ -115,9 +118,13 @@ export default function SeguimientoForm({
             required
           >
             <option value="">Selecciona</option>
-            {ACTION_TYPES.map((a) => (
-              <option key={a} value={a}>{a}</option>
-            ))}
+            {loadingActions ? (
+              <option disabled>Cargando...</option>
+            ) : (
+              actionTypes.map((a) => (
+                <option key={a} value={a}>{a}</option>
+              ))
+            )}
           </select>
         </label>
 
@@ -178,7 +185,21 @@ export default function SeguimientoForm({
         <div className="text-xs font-semibold text-slate-600">Evidencias</div>
 
         <div
-          className="border-2 border-dashed rounded-xl p-4 bg-slate-50 text-sm text-slate-600 flex flex-col items-center justify-center gap-2"
+          className={`border-2 border-dashed rounded-xl p-4 text-sm flex flex-col items-center justify-center gap-2 transition-all duration-200 ${
+            isDragging
+              ? 'border-emerald-400 bg-emerald-50 text-emerald-700'
+              : 'border-slate-300 bg-slate-50 text-slate-600 hover:border-slate-400 hover:bg-slate-100'
+          }`}
+          onDragEnter={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsDragging(true);
+          }}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsDragging(false);
+          }}
           onDragOver={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -186,6 +207,7 @@ export default function SeguimientoForm({
           onDrop={(e) => {
             e.preventDefault();
             e.stopPropagation();
+            setIsDragging(false);
             addFiles(e.dataTransfer.files);
           }}
         >

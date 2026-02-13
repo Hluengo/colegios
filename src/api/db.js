@@ -171,7 +171,6 @@ function mapFollowupRow(row) {
     created_at: row.created_at,
     action_type: row.action_type,
     process_stage: row.process_stage,
-    stage_status: row.stage_status,
     detail: row.detail,
     responsible: row.responsible,
     observations: row.observations,
@@ -535,7 +534,7 @@ export async function startSeguimiento(caseId) {
             action_date: nowIso.slice(0, 10),
             action_type: 'Monitoreo',
             process_stage: '1. Notificación Estudiante/s',
-            stage_status: 'Completada',
+            // stage_status eliminado - cada followup es una acción completada
             detail: 'Inicio del debido proceso',
             responsible: 'Sistema',
           },
@@ -634,7 +633,7 @@ export async function createFollowup(input) {
       action_date: actionDate,
       action_type: input.action_type || 'Monitoreo',
       process_stage: input.process_stage || '',
-      stage_status: input.stage_status || 'Completada',
+      // stage_status eliminado - cada followup es una acción completada
       detail: input.detail || '',
       responsible: input.responsible || 'Sistema',
       observations: input.observations || '',
@@ -642,14 +641,14 @@ export async function createFollowup(input) {
 
     if (!row.process_stage) throw new Error('Se requiere process_stage');
     if (!row.action_type) throw new Error('Se requiere action_type');
-    if (!row.stage_status) throw new Error('Se requiere stage_status');
+    // stage_status ya no es requerido
 
     const { data, error } = await withRetry(() =>
       supabase
         .from('case_followups')
         .insert([row])
         .select(
-          `id, case_id, action_date, action_type, process_stage, stage_status, detail, responsible, observations, due_date, due_at, created_at, description, action_at`,
+          `id, case_id, action_date, action_type, process_stage, detail, responsible, observations, due_date, due_at, created_at, description, action_at`,
         )
         .single(),
     );
@@ -678,7 +677,7 @@ export async function updateFollowup(id, payload = {}) {
     if (payload.action_date) updatePayload.action_date = payload.action_date;
     if (payload.action_type) updatePayload.action_type = payload.action_type;
     if (payload.process_stage) updatePayload.process_stage = payload.process_stage;
-    if (payload.stage_status) updatePayload.stage_status = payload.stage_status;
+    // stage_status eliminado - no se permite actualizar esta columna
     if (payload.detail !== undefined) updatePayload.detail = payload.detail;
     if (payload.responsible !== undefined)
       updatePayload.responsible = payload.responsible;

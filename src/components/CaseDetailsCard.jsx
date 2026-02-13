@@ -337,7 +337,7 @@ export default function CaseDetailsCard({
                         </div>
                       </div>
                       <span className="text-xs font-semibold px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 whitespace-nowrap">
-                        {seg.stage_status || 'Completada'}
+                        Completada
                       </span>
                     </div>
                   </div>

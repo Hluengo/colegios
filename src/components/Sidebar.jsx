@@ -406,7 +406,7 @@ export default function Sidebar({ mobileOpen = false, onClose = () => {} }) {
                       casosFormateados.map((caso) => (
                         <NavLink
                           key={caso.id}
-                          to={`/seguimientos?caso=${caso.id}`}
+                          to={`/seguimientos/${caso.id}`}
                           onClick={onClose}
                           className={({ isActive }) =>
                             `flex items-center gap-2 px-3 py-2 text-xs rounded-lg transition-all ${isActive ? 'bg-brand-50/80 text-brand-700 font-bold' : 'text-slate-500 hover:text-slate-800 hover:bg-white/60'}`

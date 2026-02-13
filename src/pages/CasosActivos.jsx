@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Eye, Plus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Eye, Plus, Folder, Search, X } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   getCasesPage,
   getPlazosResumenMany,
@@ -23,6 +23,7 @@ import { getCaseStatus, getCaseStatusLabel } from '../utils/caseStatus';
 
 export default function CasosActivos() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [casos, setCasos] = useState([]);
   const [selectedCaso, setSelectedCaso] = useState(null);
   const [loadingPlazos, setLoadingPlazos] = useState(false);
@@ -40,6 +41,18 @@ export default function CasosActivos() {
     10,
   );
   const [page, setPage] = usePersistedState('casosActivos.page', 1);
+
+  useEffect(() => {
+    const estudianteFromQuery = (searchParams.get('estudiante') || '').trim();
+    if (!estudianteFromQuery) return;
+
+    setSearch(estudianteFromQuery);
+    setPage(1);
+
+    const next = new URLSearchParams(searchParams);
+    next.delete('estudiante');
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setPage, setSearch, setSearchParams]);
 
   const {
     data: casesPage,
@@ -357,29 +370,36 @@ export default function CasosActivos() {
           )}
 
           {!loading && totalCasos === 0 && (
-            <div className="p-10 text-center text-slate-500">
-              <p>No hay casos activos.</p>
+            <div className="p-12 text-center">
+              <div className="mx-auto w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                <Folder className="text-slate-400" size={28} />
+              </div>
+              <p className="text-slate-600 font-medium mb-4">No hay casos activos en este momento.</p>
               <button
                 onClick={() => setNuevo(true)}
-                className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition-colors shadow-sm"
               >
-                <Plus size={16} />
+                <Plus size={18} />
                 Crear nuevo caso
               </button>
             </div>
           )}
 
           {!loading && totalCasos > 0 && casos.length === 0 && (
-            <div className="p-10 text-center text-slate-500">
-              <p>No hay resultados con esos filtros.</p>
+            <div className="p-10 text-center">
+              <div className="mx-auto w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-3">
+                <Search className="text-slate-400" size={20} />
+              </div>
+              <p className="text-slate-600 font-medium mb-3">No hay resultados con los filtros seleccionados.</p>
               <button
                 onClick={() => {
                   setSearch('');
                   setEstadoFiltro('Todos');
                   setPage(1);
                 }}
-                className="mt-3 inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium"
               >
+                <X size={16} />
                 Limpiar filtros
               </button>
             </div>

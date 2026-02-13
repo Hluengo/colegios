@@ -124,8 +124,8 @@ export default function CierreCasoPage() {
     const set = new Set();
     for (const s of seguimientos || []) {
       const stage = s.process_stage;
-      const status = s.stage_status;
-      if (stage && String(status).toLowerCase().startsWith('complet')) set.add(stage);
+      // stage_status eliminado - cada followup representa una acción completada
+      if (stage) set.add(stage);
     }
     return set;
   }, [seguimientos]);
@@ -276,7 +276,7 @@ export default function CierreCasoPage() {
         action_date: new Date().toISOString().slice(0, 10),
         action_type: 'Monitoreo',
         process_stage: closeStageKey,
-        stage_status: 'Completada',
+        // stage_status eliminado - cada followup representa una acción completada
         detail: 'Cierre formal del caso',
         observations: descripcionCierre || null,
         responsible: responsableNombre || 'Sistema',

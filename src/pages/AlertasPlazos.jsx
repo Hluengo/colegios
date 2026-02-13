@@ -111,7 +111,7 @@ export default function AlertasPlazos() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
             <span className="bg-slate-900 p-1.5 sm:p-2 rounded-xl text-white shadow-sm">
-              <Clock className="w-5 h-5 sm:w-7 sm:h-7" />
+              <Clock className="w-5 h-5 sm:w-7 sm:h-7" aria-hidden="true" />
             </span>
             Control de Alertas
           </h1>
@@ -125,31 +125,31 @@ export default function AlertasPlazos() {
       {/* RESUMEN CON CARDS MEJORADAS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <CardResumen
-          icon={<AlertTriangle size={24} />}
+          icon={<AlertTriangle size={24} aria-hidden="true" />}
           label="Vencidos"
           value={resumen.rojos}
           color="red"
         />
         <CardResumen
-          icon={<AlertTriangle size={24} />}
+          icon={<AlertTriangle size={24} aria-hidden="true" />}
           label="Urgentes"
           value={resumen.naranjos}
           color="purple"
         />
         <CardResumen
-          icon={<Clock size={24} />}
+          icon={<Clock size={24} aria-hidden="true" />}
           label="Próximos"
           value={resumen.amarillos}
           color="green"
         />
         <CardResumen
-          icon={<CheckCircle size={24} />}
+          icon={<CheckCircle size={24} aria-hidden="true" />}
           label="En plazo"
           value={resumen.verdes}
           color="green"
         />
         <CardResumen
-          icon={<FileText size={24} />}
+          icon={<FileText size={24} aria-hidden="true" />}
           label="Sin plazo"
           value={resumen.sin}
           color="gray"
@@ -206,7 +206,7 @@ export default function AlertasPlazos() {
       {Object.values(resumen).every((v) => v === 0) && (
         <div className="bg-white border-2 border-dashed border-slate-200 rounded-xl p-12 text-center">
           <div className="mx-auto w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-            <CheckCircle className="text-slate-400" size={32} />
+            <CheckCircle className="text-slate-400" size={32} aria-hidden="true" />
           </div>
           <h3 className="text-lg font-bold text-slate-800">Todo al día</h3>
           <p className="text-sm text-slate-600 mt-1">
