@@ -45,11 +45,15 @@ export default function SeguimientoForm({
       }
     }
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const canSubmit = useMemo(() => {
-    return Boolean(form.action_type && form.process_stage && form.detail?.trim());
+    return Boolean(
+      form.action_type && form.process_stage && form.detail?.trim(),
+    );
   }, [form]);
 
   function addFiles(newFiles) {
@@ -107,10 +111,15 @@ export default function SeguimientoForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="border rounded-xl p-4 bg-white shadow-sm space-y-3">
+    <form
+      onSubmit={handleSubmit}
+      className="border rounded-xl p-4 bg-white shadow-sm space-y-3"
+    >
       <div className="grid md:grid-cols-3 gap-3">
         <label className="space-y-1">
-          <div className="text-xs font-semibold text-slate-600">Tipo de acción</div>
+          <div className="text-xs font-semibold text-slate-600">
+            Tipo de acción
+          </div>
           <select
             value={form.action_type}
             onChange={(e) => setForm({ ...form, action_type: e.target.value })}
@@ -122,23 +131,31 @@ export default function SeguimientoForm({
               <option disabled>Cargando...</option>
             ) : (
               actionTypes.map((a) => (
-                <option key={a} value={a}>{a}</option>
+                <option key={a} value={a}>
+                  {a}
+                </option>
               ))
             )}
           </select>
         </label>
 
         <label className="space-y-1 md:col-span-2">
-          <div className="text-xs font-semibold text-slate-600">Etapa del proceso</div>
+          <div className="text-xs font-semibold text-slate-600">
+            Etapa del proceso
+          </div>
           <select
             value={form.process_stage}
-            onChange={(e) => setForm({ ...form, process_stage: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, process_stage: e.target.value })
+            }
             className="w-full border rounded-lg p-2 text-sm bg-white"
             required
           >
             <option value="">Selecciona</option>
             {stages.map((s) => (
-              <option key={s} value={s}>{s}</option>
+              <option key={s} value={s}>
+                {s}
+              </option>
             ))}
           </select>
         </label>
@@ -172,7 +189,9 @@ export default function SeguimientoForm({
       </label>
 
       <label className="space-y-1">
-        <div className="text-xs font-semibold text-slate-600">Observaciones</div>
+        <div className="text-xs font-semibold text-slate-600">
+          Observaciones
+        </div>
         <textarea
           value={form.observations}
           onChange={(e) => setForm({ ...form, observations: e.target.value })}
@@ -227,10 +246,15 @@ export default function SeguimientoForm({
         {files.length > 0 && (
           <ul className="space-y-2">
             {files.map((f, idx) => (
-              <li key={`${f.name}-${idx}`} className="flex items-center justify-between bg-white border rounded-lg px-3 py-2">
+              <li
+                key={`${f.name}-${idx}`}
+                className="flex items-center justify-between bg-white border rounded-lg px-3 py-2"
+              >
                 <div className="min-w-0">
                   <div className="text-sm font-medium truncate">{f.name}</div>
-                  <div className="text-xs text-slate-500">{(f.size / 1024).toFixed(1)} KB</div>
+                  <div className="text-xs text-slate-500">
+                    {(f.size / 1024).toFixed(1)} KB
+                  </div>
                 </div>
                 <button
                   type="button"
@@ -249,7 +273,7 @@ export default function SeguimientoForm({
         <button
           type="submit"
           disabled={!canSubmit || submitting}
-          className="px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold disabled:opacity-50"
+          className="px-4 py-2 rounded-xl bg-brand-600 text-white text-sm font-semibold disabled:opacity-50"
         >
           {submitting ? 'Guardando…' : 'Guardar acción'}
         </button>

@@ -23,7 +23,10 @@ export default function useActionTypes() {
         if (cancelled) return;
 
         if (fetchError) {
-          console.warn('Error fetching action_types, falling back to defaults:', fetchError);
+          console.warn(
+            'Error fetching action_types, falling back to defaults:',
+            fetchError,
+          );
           setActions([
             'Entrevista',
             'Notificación',
@@ -32,10 +35,10 @@ export default function useActionTypes() {
             'Indagacion',
             'Resolucion',
             'Apelacion',
-            'Monitoreo'
+            'Monitoreo',
           ]);
         } else if (data) {
-          setActions(data.map(d => d.name));
+          setActions(data.map((d) => d.name));
         }
       } catch (err) {
         if (cancelled) return;
@@ -49,7 +52,7 @@ export default function useActionTypes() {
           'Indagacion',
           'Resolucion',
           'Apelacion',
-          'Monitoreo'
+          'Monitoreo',
         ]);
       } finally {
         if (!cancelled) {

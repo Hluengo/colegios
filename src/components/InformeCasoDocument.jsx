@@ -189,26 +189,16 @@ function getCaseNumberOrShortId(caso) {
 export default function InformeCasoDocument({ caso, seguimientos = [] }) {
   // Ordenar seguimientos por fecha (descendente: primero -> último)
   const seguimientosOrdenados = [...seguimientos].sort((a, b) => {
-    const dateA =
-      a.action_date ||
-      a.created_at ||
-      '';
-    const dateB =
-      b.action_date ||
-      b.created_at ||
-      '';
+    const dateA = a.action_date || a.created_at || '';
+    const dateB = b.action_date || b.created_at || '';
     return new Date(dateA) - new Date(dateB);
   });
 
   const esCerrado = getCaseStatus(caso, '') === 'cerrado';
   // Preferir cierre formal de debido proceso si existe
-  const fechaCierre =
-    caso?.due_process_closed_at ||
-    caso?.closed_at;
+  const fechaCierre = caso?.due_process_closed_at || caso?.closed_at;
 
-  const rutEstudiante =
-    caso?.students?.rut ||
-    'N/A';
+  const rutEstudiante = caso?.students?.rut || 'N/A';
 
   const medidaFinal = caso?.final_disciplinary_measure || null;
   const resolucionFinal = caso?.final_resolution_text || null;
@@ -254,15 +244,11 @@ export default function InformeCasoDocument({ caso, seguimientos = [] }) {
             </View>
             <View style={styles.row}>
               <Text style={styles.label}>Curso:</Text>
-              <Text style={styles.value}>
-                {caso?.course_incident || 'N/A'}
-              </Text>
+              <Text style={styles.value}>{caso?.course_incident || 'N/A'}</Text>
             </View>
             <View style={styles.row}>
               <Text style={styles.label}>Tipo de falta / Tipificación:</Text>
-              <Text style={styles.value}>
-                {caso?.conduct_type || 'N/A'}
-              </Text>
+              <Text style={styles.value}>{caso?.conduct_type || 'N/A'}</Text>
             </View>
             <View style={styles.row}>
               <Text style={styles.label}>Categoría:</Text>
@@ -278,9 +264,7 @@ export default function InformeCasoDocument({ caso, seguimientos = [] }) {
             </View>
             <View style={styles.row}>
               <Text style={styles.label}>Hora del incidente:</Text>
-              <Text style={styles.value}>
-                {caso?.incident_time || 'N/A'}
-              </Text>
+              <Text style={styles.value}>{caso?.incident_time || 'N/A'}</Text>
             </View>
             <View style={styles.row}>
               <Text style={styles.label}>Estado del caso:</Text>
@@ -320,15 +304,12 @@ export default function InformeCasoDocument({ caso, seguimientos = [] }) {
             </View>
           ) : (
             seguimientosOrdenados.map((seg, i) => {
-              const fecha =
-                seg.action_date || '—';
+              const fecha = seg.action_date || '—';
               const etapa = seg.process_stage || '—';
               const tipo = seg.action_type || 'Actuación';
               const responsable = seg.responsible || '—';
               const descripcion =
-                seg.detail ||
-                seg.description ||
-                'Sin descripción';
+                seg.detail || seg.description || 'Sin descripción';
               const plazo = seg.due_date;
               // stage_status eliminado - cada followup representa una acción completada
               const estadoEtapa = 'Completada';

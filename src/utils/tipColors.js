@@ -54,8 +54,24 @@ export function tipHeaderClasses(tip) {
 
 // Mapa de colores consistente para reutilizar
 export const TIP_COLORS = {
-  Leve: { bg: 'bg-emerald-100', text: 'text-emerald-800', border: 'border-emerald-200' },
-  Grave: { bg: 'bg-amber-200', text: 'text-amber-800', border: 'border-amber-300' },
-  'Muy Grave': { bg: 'bg-purple-100', text: 'text-purple-800', border: 'border-purple-200' },
-  'Gravísima': { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-200' },
+  Leve: {
+    bg: 'bg-emerald-100',
+    text: 'text-emerald-800',
+    border: 'border-emerald-200',
+  },
+  Grave: {
+    bg: 'bg-amber-200',
+    text: 'text-amber-800',
+    border: 'border-amber-300',
+  },
+  'Muy Grave': {
+    bg: 'bg-purple-100',
+    text: 'text-purple-800',
+    border: 'border-purple-200',
+  },
+  Gravísima: {
+    bg: 'bg-red-100',
+    text: 'text-red-800',
+    border: 'border-red-200',
+  },
 };

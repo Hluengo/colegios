@@ -18,23 +18,17 @@ export default function CaseDetailPanel({
 }) {
   const navigate = useNavigate();
   const [editando, setEditando] = useState(false);
-  const [descripcion, setDescripcion] = useState(
-    caso.short_description || '',
-  );
+  const [descripcion, setDescripcion] = useState(caso.short_description || '');
   const [guardando, setGuardando] = useState(false);
 
   // ✅ En Casos Activos NO mostramos SLA
   // La falta es el texto de la conducta
-  const falta =
-    caso.conduct_category ||
-    caso.conduct_type ||
-    '';
+  const falta = caso.conduct_category || caso.conduct_type || '';
 
   // Calcular días desde creación para información contextual
   const diasDesdeCreacion = caso.created_at
     ? Math.floor(
-        (new Date() - new Date(caso.created_at)) /
-          (1000 * 60 * 60 * 24),
+        (new Date() - new Date(caso.created_at)) / (1000 * 60 * 60 * 24),
       )
     : null;
 
@@ -66,7 +60,10 @@ export default function CaseDetailPanel({
         const casoActualizado = await getCase(caso.id);
         if (casoActualizado) {
           logger.debug('✅ Caso refrescado:');
-          logger.debug('   - Estado nuevo:', getCaseStatusLabel(casoActualizado));
+          logger.debug(
+            '   - Estado nuevo:',
+            getCaseStatusLabel(casoActualizado),
+          );
           logger.debug('   - ID:', casoActualizado.id);
         }
       } catch (refreshErr) {
@@ -120,10 +117,7 @@ export default function CaseDetailPanel({
       <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
         {/* Tarjeta estudiante (sin SLA en Casos Activos) */}
         {(() => {
-          const studentName = getStudentName(
-            caso.students,
-            '—',
-          );
+          const studentName = getStudentName(caso.students, '—');
           return (
             <CaseStudentHeaderCard
               studentName={studentName}
@@ -180,7 +174,7 @@ export default function CaseDetailPanel({
                 <button
                   onClick={cancelarEdicion}
                   disabled={guardando}
-                  className="flex items-center gap-1 px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 text-xs font-medium"
+                  className="flex items-center gap-1 px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-brand-50 text-xs font-medium"
                 >
                   <X size={12} />
                   Cancelar
@@ -225,7 +219,7 @@ export default function CaseDetailPanel({
           {caso.seguimiento_started_at ? (
             <button
               onClick={verSeguimiento}
-              className="px-3 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold w-full hover:bg-slate-800 transition"
+              className="px-3 py-2 rounded-lg bg-brand-600 text-white text-sm font-semibold w-full hover:bg-brand-700 transition"
             >
               Ver seguimiento
             </button>

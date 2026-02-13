@@ -57,7 +57,7 @@ export default function ToastProvider({ children }) {
                 ? 'bg-red-600'
                 : toast.type === 'success'
                   ? 'bg-green-600'
-                  : 'bg-slate-800'
+                  : 'bg-brand-800'
             }`}
           >
             {toast.title && (

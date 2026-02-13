@@ -141,7 +141,7 @@ export function buildCaseUpdate(payload = {}) {
   if (payload.responsible_role !== undefined)
     updates.responsible_role = payload.responsible_role || EMPTY;
 
-// --- Campos nativos Supabase para cierre de caso (expediente final) ---
+  // --- Campos nativos Supabase para cierre de caso (expediente final) ---
   // Estos campos se envían desde el frontend (CierreCasoPage) como claves directas.
   if (payload.closed_at !== undefined)
     updates.closed_at = payload.closed_at || null;
@@ -246,9 +246,7 @@ export async function getCasesPage({
         supabase
           .from('students')
           .select('id')
-          .or(
-            `first_name.ilike.%${q}%,last_name.ilike.%${q}%,rut.ilike.%${q}%`,
-          )
+          .or(`first_name.ilike.%${q}%,last_name.ilike.%${q}%,rut.ilike.%${q}%`)
           .limit(500),
       );
       if (studentsError) throw studentsError;
@@ -277,9 +275,7 @@ export async function getCasesPage({
     }
 
     const { data, error, count } = await withRetry(() =>
-      query
-        .order('incident_date', { ascending: false })
-        .range(from, to),
+      query.order('incident_date', { ascending: false }).range(from, to),
     );
 
     if (error) throw error;
@@ -297,10 +293,7 @@ export async function getCasesPage({
 export async function getActiveCasesLite() {
   try {
     const { data, error } = await withRetry(() =>
-      supabase
-        .from('cases')
-        .select(CASE_LIST_SELECT)
-        .neq('status', 'Cerrado'),
+      supabase.from('cases').select(CASE_LIST_SELECT).neq('status', 'Cerrado'),
     );
     if (error) throw error;
     return (data || []).map(mapCaseRow);
@@ -412,11 +405,7 @@ export async function getCase(id) {
     }
 
     const { data, error } = await withRetry(() =>
-      supabase
-        .from('cases')
-        .select(CASE_SELECT_FULL)
-        .eq('id', id)
-        .single(),
+      supabase.from('cases').select(CASE_SELECT_FULL).eq('id', id).single(),
     );
 
     if (error) throw error;
@@ -551,7 +540,6 @@ export async function startSeguimiento(caseId) {
   }
 }
 
-
 /**
  * Obtener seguimientos (case_followups) para un caso
  * @param {string} caseId - ID del caso
@@ -584,10 +572,13 @@ export async function getCaseFollowups(caseId) {
             try {
               url = await getEvidenceSignedUrl(ev.storage_path, 3600);
             } catch (e) {
-              logger.warn('[getCaseFollowups] No se pudo firmar URL evidencia', {
-                evidenceId: ev.id,
-                error: e?.message || e,
-              });
+              logger.warn(
+                '[getCaseFollowups] No se pudo firmar URL evidencia',
+                {
+                  evidenceId: ev.id,
+                  error: e?.message || e,
+                },
+              );
             }
             return {
               id: ev.id,
@@ -661,7 +652,6 @@ export async function createFollowup(input) {
   }
 }
 
-
 /**
  * Actualizar un seguimiento existente
  * @param {string} id - ID del seguimiento (case_followups)
@@ -676,7 +666,8 @@ export async function updateFollowup(id, payload = {}) {
     if (payload.case_id) updatePayload.case_id = payload.case_id;
     if (payload.action_date) updatePayload.action_date = payload.action_date;
     if (payload.action_type) updatePayload.action_type = payload.action_type;
-    if (payload.process_stage) updatePayload.process_stage = payload.process_stage;
+    if (payload.process_stage)
+      updatePayload.process_stage = payload.process_stage;
     // stage_status eliminado - no se permite actualizar esta columna
     if (payload.detail !== undefined) updatePayload.detail = payload.detail;
     if (payload.responsible !== undefined)
@@ -704,7 +695,6 @@ export async function updateFollowup(id, payload = {}) {
     throw error;
   }
 }
-
 
 /**
  * Obtener todos los controles de plazos (vista global)
@@ -1134,9 +1124,9 @@ export async function getConductasByType(tipo, { activeOnly = true } = {}) {
 // --- Seguimientos Full Integration ---
 export async function getCaseDetails(caseId) {
   const { data, error } = await supabase
-    .from("cases")
+    .from('cases')
     .select(`*, students(rut,first_name,last_name,level,course)`)
-    .eq("id", caseId)
+    .eq('id', caseId)
     .single();
   if (error) throw error;
   return mapCaseRow(data);
@@ -1146,10 +1136,10 @@ export async function getInvolucrados(caseId) {
   // Tabla: public.involucrados (caso_id -> cases.id)
   if (!caseId) return [];
   const { data, error } = await supabase
-    .from("involucrados")
-    .select("*")
-    .eq("caso_id", caseId)
-    .order("created_at", { ascending: true });
+    .from('involucrados')
+    .select('*')
+    .eq('caso_id', caseId)
+    .order('created_at', { ascending: true });
 
   if (error) throw error;
   return data || [];

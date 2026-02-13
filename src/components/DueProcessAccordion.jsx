@@ -40,7 +40,10 @@ export default function DueProcessAccordion({
     });
   }, [followups]);
 
-  const grouped = useMemo(() => groupByStage(filteredFollowups), [filteredFollowups]);
+  const grouped = useMemo(
+    () => groupByStage(filteredFollowups),
+    [filteredFollowups],
+  );
   const [openKey, setOpenKey] = useState(currentStageKey);
 
   return (
@@ -51,29 +54,38 @@ export default function DueProcessAccordion({
         const isOpen = openKey === stageKey;
 
         return (
-          <div key={stageKey} className="border-b last:border-b-0 border-slate-100">
+          <div
+            key={stageKey}
+            className="border-b last:border-b-0 border-slate-100"
+          >
             <button
               type="button"
               onClick={() => setOpenKey(isOpen ? null : stageKey)}
               className={`w-full px-5 py-4 flex items-center justify-between transition-colors ${
-                isOpen ? 'bg-slate-50' : 'hover:bg-slate-50'
+                isOpen ? 'bg-slate-50' : 'hover:bg-brand-50'
               }`}
             >
               <div className="min-w-0 text-left">
                 <div className="flex items-center gap-2">
-                  <div className={`text-sm font-bold truncate ${isOpen ? 'text-brand-700' : 'text-slate-700'}`}>
+                  <div
+                    className={`text-sm font-bold truncate ${isOpen ? 'text-brand-700' : 'text-slate-700'}`}
+                  >
                     {stageKey}
                   </div>
                   <span
                     className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                      count > 0 ? 'bg-white text-slate-600 border-slate-200 shadow-sm' : 'bg-slate-100 text-slate-500 border-transparent'
+                      count > 0
+                        ? 'bg-white text-slate-600 border-slate-200 shadow-sm'
+                        : 'bg-slate-100 text-slate-500 border-transparent'
                     }`}
                   >
                     {count}
                   </span>
                 </div>
               </div>
-              <span className={`text-slate-500 text-lg transition-transform duration-200 ${isOpen ? 'rotate-180 text-brand-500' : ''}`}>
+              <span
+                className={`text-slate-500 text-lg transition-transform duration-200 ${isOpen ? 'rotate-180 text-brand-500' : ''}`}
+              >
                 ▾
               </span>
             </button>
@@ -82,7 +94,9 @@ export default function DueProcessAccordion({
               <div className="px-5 pb-5 bg-slate-50/30">
                 {count === 0 ? (
                   <div className="flex flex-col items-center py-4 text-center">
-                    <div className="text-sm text-slate-500 mb-2">No hay acciones en esta etapa.</div>
+                    <div className="text-sm text-slate-500 mb-2">
+                      No hay acciones en esta etapa.
+                    </div>
                     {!readOnly && (
                       <button
                         type="button"
@@ -96,7 +110,10 @@ export default function DueProcessAccordion({
                 ) : (
                   <div className="mt-2 space-y-3">
                     {items.map((f) => (
-                      <div key={f.id} className="bg-white rounded-lg border border-slate-200 shadow-sm">
+                      <div
+                        key={f.id}
+                        className="bg-white rounded-lg border border-slate-200 shadow-sm"
+                      >
                         <SeguimientoItem seg={f} readOnly={readOnly} />
                       </div>
                     ))}

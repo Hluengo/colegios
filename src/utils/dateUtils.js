@@ -9,7 +9,8 @@ export function toStartOfDay(d) {
 // Parsea fechas YYYY-MM-DD como fecha local y otras fechas con Date()
 export function parseLocalDate(value) {
   if (!value) return null;
-  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
+  if (value instanceof Date)
+    return Number.isNaN(value.getTime()) ? null : value;
   if (/^\d{4}-\d{2}-\d{2}$/.test(String(value))) {
     const [y, m, d] = String(value).split('-').map(Number);
     const date = new Date(y, m - 1, d);

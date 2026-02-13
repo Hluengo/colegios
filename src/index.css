@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,12 +6,37 @@
 
 @layer base {
   :root {
-    --bg: #f6f7f8;
+    /* Paleta SaaS enterprise */
+    --bg: #f5f7fb;
     --panel: #ffffff;
     --muted: #4b5563;
-    --brand: #0b1220; /* carbón frío más oscuro */
-    --accent: #25313b; /* azul grisáceo frío */
-    --glass-edge: rgba(11, 17, 32, 0.08);
+    --brand: #5f7694;
+    --accent: #4b607c;
+    --glass-edge: rgba(75, 96, 124, 0.14);
+    
+    /* Colores de texto con contraste AA */
+    --text-primary: #0f172a;    /* slate-900: 16.1:1 */
+    --text-secondary: #334155; /* slate-700 */
+    --text-muted: #475569;     /* slate-600: 7.3:1 */
+    
+    /* Estados interactivos - paleta profesional neutra */
+    --focus-ring: #5f7694;
+    --focus-ring-light: #dce4ef;
+    --primary: #4b607c;
+    --primary-hover: #3b4d66;
+  }
+
+  /* Modo de alto contraste */
+  .high-contrast {
+    --bg: #000000;
+    --panel: #1a1a1a;
+    --text-primary: #ffffff;
+    --text-secondary: #f0f0f0;
+    --text-muted: #64748b;
+    --brand: #475569;
+    --accent: #334155;
+    --focus-ring: #475569;
+    --focus-ring-light: #e2e8f0;
   }
 
   html,
@@ -23,10 +48,24 @@
 
   body {
     @apply font-sans text-slate-900 antialiased;
-    background: linear-gradient(180deg, var(--bg) 0%, #f1f5f9 100%);
+    background:
+      radial-gradient(1200px 500px at 100% -120px, rgba(75, 96, 124, 0.08), transparent 65%),
+      linear-gradient(180deg, var(--bg) 0%, #fbfcfe 100%);
     background-attachment: fixed;
     overflow: auto;
     font-size: 15px;
+    line-height: 1.5;
+    color: var(--text-primary);
+  }
+
+  /* Focus visible mejorado para accesibilidad */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
   }
 
   button,
@@ -37,10 +76,32 @@
   input,
   select,
   textarea {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 focus-visible:ring-offset-2 focus-visible:ring-offset-white;
+    @apply focus-visible:outline-none;
   }
 
-  /* Custom Scrollbar (subtil) */
+  button:focus-visible,
+  [type='button']:focus-visible,
+  [type='submit']:focus-visible,
+  [type='reset']:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* Skip link para navegación por teclado */
+  .skip-link {
+    @apply absolute -top-10 left-4 z-[100] bg-emerald-700 text-white px-4 py-2 rounded-md;
+    transition: top 0.2s ease;
+  }
+
+  .skip-link:focus {
+    @apply top-4;
+  }
+
+  /* Custom Scrollbar (sutil) */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -54,37 +115,60 @@
     background: rgba(11, 17, 32, 0.14);
     border-radius: 9999px;
   }
+
+  /* Reduced Motion - Preferencia del usuario */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Support para usuarios que prefieren no ver animaciones */
+  .reduce-motion,
+  .reduce-motion * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @layer components {
   /* GLASS COMPONENTS */
   .glass-panel {
     @apply bg-white backdrop-blur-sm border rounded-2xl transition-all duration-300;
-    border: 1px solid rgba(11, 17, 32, 0.08);
-    box-shadow: 0 12px 34px rgba(2, 6, 23, 0.08);
+    border: 1px solid #e4eaf2;
+    box-shadow:
+      0 1px 0 rgba(75, 96, 124, 0.05),
+      0 10px 24px rgba(15, 23, 42, 0.07);
   }
 
   .glass-panel-hover {
-    @apply hover:bg-white/80 hover:scale-[1.01] hover:shadow-lg hover:border-white/80;
+    @apply hover:bg-white/95 hover:scale-[1.01] hover:shadow-lg hover:border-slate-300;
   }
 
   .glass-card {
     @apply bg-white border rounded-xl;
-    border: 1px solid rgba(11, 17, 32, 0.06);
-    box-shadow: 0 8px 20px rgba(2, 6, 23, 0.07);
+    border: 1px solid #e4eaf2;
+    box-shadow:
+      0 1px 0 rgba(75, 96, 124, 0.05),
+      0 8px 18px rgba(15, 23, 42, 0.06);
   }
 
   /* BUTTONS ("Neumorphic" / Modern) */
   .btn-primary {
-    @apply text-white font-semibold rounded-md transition-all duration-200;
-    background-color: var(--brand);
-    border: 1px solid rgba(2, 6, 23, 0.1);
-    box-shadow: 0 6px 18px rgba(2, 6, 23, 0.12);
+    @apply text-white font-semibold rounded-lg transition-all duration-200;
+    background: linear-gradient(135deg, #5f7694 0%, #4b607c 100%);
+    border: 1px solid #4b607c;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.16);
   }
 
   .btn-secondary {
-    @apply bg-transparent text-slate-800 font-medium border border-transparent rounded-md hover:bg-slate-50 transition-all duration-150;
-    border: 1px solid rgba(11, 17, 32, 0.06);
+    @apply bg-white text-slate-700 font-medium border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-all duration-150;
   }
 
   .btn-ghost {
@@ -93,13 +177,13 @@
 
   /* FORM ELEMENTS */
   .input-glass {
-    @apply bg-white border border-slate-200 rounded-md px-3 py-2 outline-none transition-shadow duration-150 placeholder:text-slate-500;
+    @apply bg-white border border-slate-300 rounded-lg px-3 py-2 outline-none transition-all duration-150 placeholder:text-slate-400 focus:border-brand-600 focus:ring-2 focus:ring-brand-100;
   }
 
   /* TYPOGRAPHY */
   .page-title {
     @apply text-3xl font-extrabold tracking-tight;
-    color: var(--brand);
+    color: #1e293b; /* slate-800 */
   }
 
   .section-title {
@@ -109,7 +193,7 @@
   /* BADGES */
   .badge-glass {
     @apply px-2.5 py-0.5 rounded-full text-xs font-bold border shadow-sm;
-    border: 1px solid rgba(15, 23, 42, 0.04);
+    border: 1px solid #cbd5e1;
   }
 
   /* Tap targets */
@@ -160,6 +244,20 @@
 
 .animate-slide-up {
   animation: slideUpFade 320ms ease both;
+}
+
+/* Fade in animation for tooltips */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 150ms ease-out;
 }
 
 .floating-hint {

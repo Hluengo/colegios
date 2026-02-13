@@ -10,7 +10,6 @@ export function getEvidencePublicUrl(storagePath) {
   return data?.publicUrl || null;
 }
 
-
 function safeFileName(name = '') {
   return name.replace(/[^\w.\-()]/g, '_');
 }
@@ -141,7 +140,11 @@ export async function uploadMessageAttachments({
 
   // Resolver case_id real desde el mensaje
   const { data: msgRow, error: msgErr } = await withRetry(() =>
-    supabase.from('case_messages').select('case_id').eq('id', messageId).single(),
+    supabase
+      .from('case_messages')
+      .select('case_id')
+      .eq('id', messageId)
+      .single(),
   );
   if (msgErr) throw msgErr;
   const realCaseId = msgRow?.case_id;

@@ -63,10 +63,7 @@ export default function Sidebar({ mobileOpen = false, onClose = () => {} }) {
 
     try {
       return enSeguimiento.map((caso) => {
-        const nombre = getStudentName(
-          caso.students,
-          'Sin nombre',
-        );
+        const nombre = getStudentName(caso.students, 'Sin nombre');
         return { id: caso.id, nombre };
       });
     } catch (e) {
@@ -79,10 +76,10 @@ export default function Sidebar({ mobileOpen = false, onClose = () => {} }) {
     'group flex items-center gap-2.5 px-3 py-2 mx-2.5 rounded-xl text-[13px] font-medium transition-all duration-300 relative overflow-hidden';
 
   const activeClass =
-    'bg-brand-800 text-white shadow-soft ring-1 ring-white/10';
+    'bg-brand-50 text-brand-700 shadow-sm ring-1 ring-brand-200';
 
   const inactiveClass =
-    'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-sm';
+    'text-slate-600 hover:bg-brand-50/70 hover:text-brand-700 hover:ring-1 hover:ring-brand-200';
 
   return (
     <>
@@ -108,7 +105,7 @@ export default function Sidebar({ mobileOpen = false, onClose = () => {} }) {
               />
             </div>
             <div>
-              <h1 className="text-base font-black text-slate-800 tracking-tight leading-none">
+              <h1 className="text-base font-semibold text-slate-800 tracking-tight leading-none">
                 {BRANDING.appName}
               </h1>
               <p className="text-[9px] font-bold text-brand-500 tracking-widest uppercase mt-0.5">
@@ -320,7 +317,7 @@ export default function Sidebar({ mobileOpen = false, onClose = () => {} }) {
       {mobileOpen && (
         <div className="fixed inset-0 z-50 flex sm:hidden">
           <div
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+            className="fixed inset-0 bg-brand-900/30 backdrop-blur-sm transition-opacity"
             onClick={onClose}
           />
           <aside className="relative w-72 bg-white h-full shadow-2xl flex flex-col overflow-hidden">
@@ -336,7 +333,7 @@ export default function Sidebar({ mobileOpen = false, onClose = () => {} }) {
                   />
                 </div>
                 <div>
-                  <h1 className="text-sm font-black text-slate-800 tracking-tight leading-none">
+                  <h1 className="text-sm font-semibold text-slate-800 tracking-tight leading-none">
                     {BRANDING.appName}
                   </h1>
                   <p className="text-[8px] font-bold text-slate-600 tracking-widest uppercase mt-0.5">

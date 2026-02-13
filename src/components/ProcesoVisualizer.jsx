@@ -16,7 +16,9 @@ export default function ProcesoVisualizer({
           const sladays = stageSlaMap?.[stageKey] ?? null;
 
           const stageNum = index + 1;
-          const stageName = stageKey.includes('.') ? (stageKey.split('.')[1]?.trim() || stageKey) : stageKey;
+          const stageName = stageKey.includes('.')
+            ? stageKey.split('.')[1]?.trim() || stageKey
+            : stageKey;
 
           const circleClass = isCompleted
             ? 'bg-emerald-500 text-white shadow-sm ring-2 ring-emerald-100'
@@ -58,7 +60,9 @@ export default function ProcesoVisualizer({
             const sladays = stageSlaMap?.[stageKey] ?? null;
 
             const stageNum = index + 1;
-            const stageName = stageKey.includes('.') ? (stageKey.split('.')[1]?.trim() || stageKey) : stageKey;
+            const stageName = stageKey.includes('.')
+              ? stageKey.split('.')[1]?.trim() || stageKey
+              : stageKey;
 
             const circleClass = isCompleted
               ? 'bg-emerald-500 text-white shadow-sm ring-2 ring-emerald-100'

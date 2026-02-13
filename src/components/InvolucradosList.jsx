@@ -186,7 +186,7 @@ export default function InvolucradosList({ casoId, readOnly = false }) {
                     setNombre('');
                     setRol('');
                   }}
-                  className="px-3 py-1.5 border border-slate-300 bg-white text-slate-600 rounded text-xs font-medium hover:bg-slate-50"
+                  className="px-3 py-1.5 border border-slate-300 bg-white text-slate-600 rounded text-xs font-medium hover:bg-brand-50"
                 >
                   Cancelar
                 </button>

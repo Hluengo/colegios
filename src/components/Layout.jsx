@@ -156,68 +156,71 @@ export default function Layout() {
         Saltar al contenido principal
       </a>
       <div className="flex h-screen overflow-hidden bg-slate-50 selection:bg-accent-500/30">
-      {/* Background Gradients (Global) */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-300/10 rounded-full blur-[120px] animate-pulse-slow" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent-300/10 rounded-full blur-[120px] animate-pulse-slow animation-delay-400" />
+        {/* Background Gradients (Global) */}
+        <div className="fixed inset-0 z-0 pointer-events-none">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-300/10 rounded-full blur-[120px] animate-pulse-slow" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent-300/10 rounded-full blur-[120px] animate-pulse-slow animation-delay-400" />
+        </div>
+
+        {/* SIDEBAR */}
+        <Sidebar />
+
+        {/* CONTENT AREA */}
+        <main
+          id="main-content"
+          className="flex-1 flex flex-col relative z-10 m-2 ml-0 sm:ml-2.5 bg-white/40 backdrop-blur-xl border border-white/50 shadow-glass rounded-3xl overflow-hidden transition-all duration-300"
+        >
+          {/* HEADER SUPERIOR */}
+          <div className="flex justify-between items-center px-5 py-3 shrink-0 border-b border-white/40">
+            {/* Mobile Hamburger */}
+            <button
+              onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+              className="sm:hidden p-2 rounded-lg hover:bg-white/60 text-slate-600"
+            >
+              <Menu size={20} />
+            </button>
+
+            {/* Page Title (Dynamic from route) */}
+            <div className="flex-1 flex items-center gap-3">
+              <h2 className="page-title">
+                {getTitle() || 'Convivencia Escolar'}
+              </h2>
+            </div>
+
+            {/* Status Indicators */}
+            <div className="hidden sm:flex items-center gap-3">
+              {online && sbOk ? (
+                <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                  <span className="text-[11px] font-bold text-emerald-700">
+                    Sistema Activo
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-red-50 border border-red-100">
+                  <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div>
+                  <span className="text-[11px] font-bold text-red-700">
+                    Desconectado
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 👇 PAGE CONTENT */}
+          <div className="flex-1 overflow-y-auto px-3 sm:px-5 pb-5 pt-3 scroll-smooth">
+            <Outlet />
+          </div>
+        </main>
+
+        {/* Mobile sidebar overlay */}
+        {isMobile && (
+          <Sidebar
+            mobileOpen={mobileSidebarOpen}
+            onClose={() => setMobileSidebarOpen(false)}
+          />
+        )}
       </div>
-
-      {/* SIDEBAR */}
-      <Sidebar />
-
-      {/* CONTENT AREA */}
-      <main id="main-content" className="flex-1 flex flex-col relative z-10 m-2 ml-0 sm:ml-2.5 bg-white/40 backdrop-blur-xl border border-white/50 shadow-glass rounded-3xl overflow-hidden transition-all duration-300">
-        {/* HEADER SUPERIOR */}
-        <div className="flex justify-between items-center px-5 py-3 shrink-0 border-b border-white/40">
-          {/* Mobile Hamburger */}
-          <button
-            onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
-            className="sm:hidden p-2 rounded-lg hover:bg-white/60 text-slate-600"
-          >
-            <Menu size={20} />
-          </button>
-
-          {/* Page Title (Dynamic from route) */}
-          <div className="flex-1 flex items-center gap-3">
-            <h2 className="page-title">
-              {getTitle() || 'Convivencia Escolar'}
-            </h2>
-          </div>
-
-          {/* Status Indicators */}
-          <div className="hidden sm:flex items-center gap-3">
-            {online && sbOk ? (
-              <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                <span className="text-[11px] font-bold text-emerald-700">
-                  Sistema Activo
-                </span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-red-50 border border-red-100">
-                <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div>
-                <span className="text-[11px] font-bold text-red-700">
-                  Desconectado
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* 👇 PAGE CONTENT */}
-        <div className="flex-1 overflow-y-auto px-3 sm:px-5 pb-5 pt-3 scroll-smooth">
-          <Outlet />
-        </div>
-      </main>
-
-      {/* Mobile sidebar overlay */}
-      {isMobile && (
-        <Sidebar
-          mobileOpen={mobileSidebarOpen}
-          onClose={() => setMobileSidebarOpen(false)}
-        />
-      )}
-    </div>
     </>
   );
 }

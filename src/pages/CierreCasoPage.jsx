@@ -2,7 +2,12 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CheckCircle2, FileDown, X } from 'lucide-react';
 
-import { createFollowup, getCaseDetails, getCaseFollowups, updateCase } from '../api/db';
+import {
+  createFollowup,
+  getCaseDetails,
+  getCaseFollowups,
+  updateCase,
+} from '../api/db';
 import { CARGOS } from '../constants/cargos';
 import { DUE_PROCESS_STAGES } from '../constants/dueProcessStages';
 import { emitDataUpdated } from '../utils/refreshBus';
@@ -43,7 +48,9 @@ function Stepper({ activeKey }) {
             >
               {idx + 1}
             </div>
-            <div className={`text-sm font-semibold ${active ? 'text-brand-700' : 'text-slate-600'}`}>
+            <div
+              className={`text-sm font-semibold ${active ? 'text-brand-700' : 'text-slate-600'}`}
+            >
               {s.label}
             </div>
           </div>
@@ -57,7 +64,9 @@ function ValidItem({ label, ok }) {
   return (
     <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
       <div className="flex items-center gap-3">
-        <CheckCircle2 className={`w-5 h-5 ${ok ? 'text-emerald-600' : 'text-slate-400'}`} />
+        <CheckCircle2
+          className={`w-5 h-5 ${ok ? 'text-emerald-600' : 'text-slate-400'}`}
+        />
         <div className="text-sm font-medium text-slate-800">{label}</div>
       </div>
       <span
@@ -133,21 +142,35 @@ export default function CierreCasoPage() {
   const stepOrder = useMemo(() => CIERRE_STEPS.map((s) => s.key), []);
   const activeIndex = stepOrder.indexOf(activeStep);
   const prevStep = activeIndex > 0 ? stepOrder[activeIndex - 1] : null;
-  const nextStep = activeIndex >= 0 && activeIndex < stepOrder.length - 1 ? stepOrder[activeIndex + 1] : null;
+  const nextStep =
+    activeIndex >= 0 && activeIndex < stepOrder.length - 1
+      ? stepOrder[activeIndex + 1]
+      : null;
 
   const validacionItems = useMemo(() => {
     // Mapeo simple: consideramos validado si la etapa tiene al menos 1 acción o está completada.
     return [
       { label: 'Denuncia Inicial', stage: effectiveStages[0] },
       { label: 'Notificación a las Partes', stage: effectiveStages[1] },
-      { label: 'Entrevista con el Estudiante', stage: effectiveStages[3] || effectiveStages[2] },
+      {
+        label: 'Entrevista con el Estudiante',
+        stage: effectiveStages[3] || effectiveStages[2],
+      },
       { label: 'Recepción de Pruebas', stage: effectiveStages[2] },
       { label: 'Reunión con Acudientes', stage: effectiveStages[1] },
-      { label: 'Análisis de Evidencia', stage: effectiveStages[4] || effectiveStages[2] },
+      {
+        label: 'Análisis de Evidencia',
+        stage: effectiveStages[4] || effectiveStages[2],
+      },
       { label: 'Descargos', stage: effectiveStages[3] || effectiveStages[2] },
-      { label: 'Resolución de Instancia', stage: effectiveStages[5] || effectiveStages[4] },
+      {
+        label: 'Resolución de Instancia',
+        stage: effectiveStages[5] || effectiveStages[4],
+      },
     ].map((it) => {
-      const hasAny = (seguimientos || []).some((s) => s.process_stage === it.stage);
+      const hasAny = (seguimientos || []).some(
+        (s) => s.process_stage === it.stage,
+      );
       const ok = completedStages.has(it.stage) || hasAny;
       return { ...it, ok };
     });
@@ -259,7 +282,8 @@ export default function CierreCasoPage() {
       push({
         type: 'error',
         title: 'Faltan datos',
-        message: 'Completa la descripción de cierre y la medida disciplinaria antes de cerrar.',
+        message:
+          'Completa la descripción de cierre y la medida disciplinaria antes de cerrar.',
       });
       goToStep('resolucion');
       return;
@@ -318,18 +342,31 @@ export default function CierreCasoPage() {
     <div className="h-full w-full">
       <div className="max-w-5xl mx-auto">
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/60 flex items-start justify-between">
+          <div className="px-6 py-5 border-b border-slate-100 bg-gradient-to-r from-brand-50/70 to-transparent flex items-start justify-between">
             <div>
               <div className="text-[11px] text-slate-600 font-semibold">
-                <span className="hover:underline cursor-pointer" onClick={() => navigate('/')}>Inicio</span>
+                <span
+                  className="hover:underline cursor-pointer"
+                  onClick={() => navigate('/')}
+                >
+                  Inicio
+                </span>
                 <span className="mx-1">›</span>
-                <span className="hover:underline cursor-pointer" onClick={() => navigate(-1)}>Seguimiento</span>
+                <span
+                  className="hover:underline cursor-pointer"
+                  onClick={() => navigate(-1)}
+                >
+                  Seguimiento
+                </span>
                 <span className="mx-1">›</span>
                 <span className="text-slate-600">Cierre de Caso</span>
               </div>
-              <h1 className="text-xl font-black text-slate-900">{expedienteTitle}</h1>
+              <h1 className="text-xl font-semibold text-slate-900">
+                {expedienteTitle}
+              </h1>
               <p className="text-sm text-slate-600 mt-1">
-                Siga los pasos para formalizar la conclusión del proceso disciplinario.
+                Siga los pasos para formalizar la conclusión del proceso
+                disciplinario.
               </p>
               {alumnoNombre && (
                 <p className="text-xs text-slate-600 mt-1">{alumnoNombre}</p>
@@ -349,29 +386,29 @@ export default function CierreCasoPage() {
           <div className="px-6 py-5">
             <Stepper activeKey={activeStep} />
 
-              <div className="mt-4 flex items-center justify-end gap-3">
-                {prevStep && (
-                  <button
-                    onClick={() => goToStep(prevStep, true)}
-                    className="text-xs font-semibold text-slate-600 hover:underline"
-                  >
-                    Volver
-                  </button>
-                )}
-                {nextStep && (
-                  <button
-                    onClick={() => goToStep(nextStep)}
-                    className="text-xs font-semibold text-brand-700 hover:underline"
-                  >
-                    Siguiente
-                  </button>
-                )}
-              </div>
+            <div className="mt-4 flex items-center justify-end gap-3">
+              {prevStep && (
+                <button
+                  onClick={() => goToStep(prevStep, true)}
+                  className="text-xs font-semibold text-slate-600 hover:underline"
+                >
+                  Volver
+                </button>
+              )}
+              {nextStep && (
+                <button
+                  onClick={() => goToStep(nextStep)}
+                  className="text-xs font-semibold text-brand-700 hover:underline"
+                >
+                  Siguiente
+                </button>
+              )}
+            </div>
 
             {/* Paso 1 */}
             <div ref={validacionRef} className="mt-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-black text-slate-900">
+                <h2 className="text-sm font-semibold text-slate-900">
                   Paso 1: Validación de Debido Proceso
                 </h2>
               </div>
@@ -386,13 +423,15 @@ export default function CierreCasoPage() {
             {/* Paso 2 */}
             <div ref={resolucionRef} className="mt-8">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-black text-slate-900">
+                <h2 className="text-sm font-semibold text-slate-900">
                   Paso 2: Resolución Final
                 </h2>
               </div>
 
               <div className="mt-3">
-                <label className="text-xs font-bold text-slate-700">Descripción de Cierre</label>
+                <label className="text-xs font-bold text-slate-700">
+                  Descripción de Cierre
+                </label>
                 <textarea
                   value={descripcionCierre}
                   onChange={(e) => setDescripcionCierre(e.target.value)}
@@ -404,7 +443,9 @@ export default function CierreCasoPage() {
 
               <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-bold text-slate-700">Medida Disciplinaria Final</label>
+                  <label className="text-xs font-bold text-slate-700">
+                    Medida Disciplinaria Final
+                  </label>
                   <select
                     value={medida}
                     onChange={(e) => setMedida(e.target.value)}
@@ -419,7 +460,9 @@ export default function CierreCasoPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-slate-700">Responsable del Cierre</label>
+                  <label className="text-xs font-bold text-slate-700">
+                    Responsable del Cierre
+                  </label>
                   <input
                     value={responsableNombre}
                     onChange={(e) => setResponsableNombre(e.target.value)}
@@ -429,7 +472,9 @@ export default function CierreCasoPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-slate-700">Cargo del Responsable</label>
+                  <label className="text-xs font-bold text-slate-700">
+                    Cargo del Responsable
+                  </label>
                   <select
                     value={responsableRol}
                     onChange={(e) => setResponsableRol(e.target.value)}
@@ -450,18 +495,19 @@ export default function CierreCasoPage() {
             {/* Paso 3 */}
             <div ref={documentacionRef} className="mt-8">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-black text-slate-900">
+                <h2 className="text-sm font-semibold text-slate-900">
                   Paso 3: Documentación
                 </h2>
               </div>
 
-              <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/60 p-5 flex items-center justify-between gap-4">
+              <div className="mt-4 rounded-2xl border border-slate-200 bg-gradient-to-r from-brand-50/70 to-transparent p-5 flex items-center justify-between gap-4">
                 <div className="min-w-0">
-                  <div className="text-base font-black text-slate-900">
+                  <div className="text-base font-semibold text-slate-900">
                     Generar Expediente Final (PDF)
                   </div>
                   <p className="text-xs text-slate-600 mt-1">
-                    El sistema consolidará el seguimiento y la resolución final en un documento descargable.
+                    El sistema consolidará el seguimiento y la resolución final
+                    en un documento descargable.
                   </p>
                   <div className="mt-3 flex flex-wrap gap-3 text-[11px] text-slate-600">
                     <span>• PDF/A compatible</span>
@@ -472,7 +518,7 @@ export default function CierreCasoPage() {
 
                 <button
                   onClick={generarPDF}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 text-sm font-semibold hover:bg-slate-50"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 text-sm font-semibold hover:bg-brand-50"
                 >
                   <FileDown className="w-4 h-4" />
                   Generar y Descargar
@@ -484,7 +530,7 @@ export default function CierreCasoPage() {
             <div className="mt-8 flex items-center justify-end gap-3">
               <button
                 onClick={() => navigate(-1)}
-                className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:bg-brand-50"
               >
                 Cancelar
               </button>
@@ -492,7 +538,9 @@ export default function CierreCasoPage() {
                 onClick={finalizarYCerrar}
                 disabled={isClosed}
                 className={`px-5 py-2 rounded-xl text-sm font-semibold text-white ${
-                  isClosed ? 'bg-slate-300 cursor-not-allowed' : 'bg-brand-600 hover:bg-brand-700'
+                  isClosed
+                    ? 'bg-slate-300 cursor-not-allowed'
+                    : 'bg-brand-600 hover:bg-brand-700'
                 }`}
               >
                 {isClosed ? 'Caso Cerrado' : 'Finalizar y Cerrar Caso'}

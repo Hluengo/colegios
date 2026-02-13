@@ -48,22 +48,38 @@ export async function loadEstadisticas({ desde, hasta }) {
         'stats_reincidencia',
         () => supabase.rpc('stats_reincidencia', { desde, hasta }),
       ],
-      ['stats_mayor_carga', () => supabase.rpc('stats_mayor_carga', { desde, hasta })],
-      ['stats_mayor_nivel', () => supabase.rpc('stats_mayor_nivel', { desde, hasta })],
+      [
+        'stats_mayor_carga',
+        () => supabase.rpc('stats_mayor_carga', { desde, hasta }),
+      ],
+      [
+        'stats_mayor_nivel',
+        () => supabase.rpc('stats_mayor_nivel', { desde, hasta }),
+      ],
       [
         'stats_promedio_seguimientos_por_caso',
-        () => supabase.rpc('stats_promedio_seguimientos_por_caso', { desde, hasta }),
+        () =>
+          supabase.rpc('stats_promedio_seguimientos_por_caso', {
+            desde,
+            hasta,
+          }),
       ],
       [
         'stats_tiempo_primer_seguimiento',
         () => supabase.rpc('stats_tiempo_primer_seguimiento', { desde, hasta }),
       ],
-      ['stats_casos_por_mes', () => supabase.rpc('stats_casos_por_mes', { desde, hasta })],
+      [
+        'stats_casos_por_mes',
+        () => supabase.rpc('stats_casos_por_mes', { desde, hasta }),
+      ],
       [
         'stats_casos_por_tipificacion',
         () => supabase.rpc('stats_casos_por_tipificacion', { desde, hasta }),
       ],
-      ['stats_casos_por_curso', () => supabase.rpc('stats_casos_por_curso', { desde, hasta })],
+      [
+        'stats_casos_por_curso',
+        () => supabase.rpc('stats_casos_por_curso', { desde, hasta }),
+      ],
     ];
 
     const rpcResults = await Promise.all(
@@ -113,7 +129,10 @@ export async function loadEstadisticas({ desde, hasta }) {
           const first = r.students?.first_name || '';
           const last = r.students?.last_name || '';
           const estudiante = `${first} ${last}`.trim() || 'Sin nombre';
-          const current = byStudentId.get(studentId) || { estudiante, total: 0 };
+          const current = byStudentId.get(studentId) || {
+            estudiante,
+            total: 0,
+          };
           byStudentId.set(studentId, {
             estudiante: current.estudiante || estudiante,
             total: current.total + 1,

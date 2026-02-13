@@ -76,7 +76,7 @@ export default function ModalShell({
     >
       {/* backdrop */}
       <div
-        className="absolute inset-0 bg-slate-900/40 backdrop-blur-[1px]"
+        className="absolute inset-0 bg-black/30 backdrop-blur-[1px]"
         onClick={onClose}
       />
 
@@ -92,7 +92,7 @@ export default function ModalShell({
             <div className="flex items-start justify-between px-5 sm:px-6 py-4 border-b border-slate-100">
               <div className="min-w-0">
                 {title && (
-                  <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight truncate">
+                  <h3 className="text-lg sm:text-xl font-semibold text-slate-900 tracking-tight truncate">
                     {title}
                   </h3>
                 )}
@@ -118,7 +118,7 @@ export default function ModalShell({
           <div className="max-h-[80vh] overflow-y-auto">{children}</div>
 
           {footer && (
-            <div className="px-5 sm:px-6 py-4 border-t border-slate-100 bg-slate-50/60">
+            <div className="px-5 sm:px-6 py-4 border-t border-slate-100 bg-gradient-to-r from-brand-50/70 to-transparent">
               {footer}
             </div>
           )}

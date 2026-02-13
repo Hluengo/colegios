@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Star, CornerDownRight } from 'lucide-react';
-import { createCaseComment, getCaseComments, setCommentUrgent } from '../api/db';
+import {
+  createCaseComment,
+  getCaseComments,
+  setCommentUrgent,
+} from '../api/db';
 import { uploadMessageAttachments } from '../api/evidence';
 import { formatDate } from '../utils/formatDate';
 import { CARGOS } from '../constants/cargos';
@@ -95,7 +99,7 @@ export default function TeamComments({
     setter((prev) => [...prev, ...arr]);
   }
 
-  function removeFile(idx, setter) {
+  function _removeFile(idx, setter) {
     setter((prev) => prev.filter((_, i) => i !== idx));
   }
 
@@ -169,7 +173,9 @@ export default function TeamComments({
   async function toggleUrgent(c) {
     try {
       const updated = await setCommentUrgent(c.id, !c.is_urgent);
-      setComments((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+      setComments((prev) =>
+        prev.map((p) => (p.id === updated.id ? updated : p)),
+      );
     } catch (e) {
       push({
         type: 'error',

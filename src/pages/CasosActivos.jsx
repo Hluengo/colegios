@@ -70,7 +70,7 @@ export default function CasosActivos() {
       }),
     [refreshKey, page, pageSize, estadoFiltro, search],
     {
-    ttlMs: 30000,
+      ttlMs: 30000,
     },
   );
 
@@ -84,7 +84,7 @@ export default function CasosActivos() {
       setLoadingPlazos(true);
       let m = new Map();
       try {
-      const ids = activos.map((c) => c.id);
+        const ids = activos.map((c) => c.id);
         m = await getPlazosResumenMany(ids);
         setPlazos(m);
       } catch (plErr) {
@@ -104,7 +104,12 @@ export default function CasosActivos() {
         if (txt.includes('VENCIDO')) return 0;
         if (txt.includes('VENCE HOY')) return 1;
         if (txt.includes('PRÓXIMO') || txt.includes('PROXIMO')) return 2;
-        if (txt.includes('EN PLAZO') || txt.includes('AL DÍA') || txt.includes('AL DIA')) return 3;
+        if (
+          txt.includes('EN PLAZO') ||
+          txt.includes('AL DÍA') ||
+          txt.includes('AL DIA')
+        )
+          return 3;
         return 5;
       }
 
@@ -140,7 +145,9 @@ export default function CasosActivos() {
     // ✅ Escuchar cambios de datos
     const off = onDataUpdated(() => {
       logger.debug('🔄 Refrescando casos activos...');
-      clearCache(`cases:activos:${page}:${pageSize}:${estadoFiltro}:${search || ''}`);
+      clearCache(
+        `cases:activos:${page}:${pageSize}:${estadoFiltro}:${search || ''}`,
+      );
       setRefreshKey((k) => k + 1);
     });
 
@@ -151,7 +158,8 @@ export default function CasosActivos() {
     if (!startDate || !endDate) return null;
     const start = new Date(startDate);
     const end = new Date(endDate);
-    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return null;
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()))
+      return null;
 
     // Normalize to midnight
     start.setHours(0, 0, 0, 0);
@@ -199,19 +207,27 @@ export default function CasosActivos() {
     let label = txt;
     if (txt.includes('VENCE HOY')) label = 'VENCE HOY';
     else if (txt.includes('VENCIDO')) label = 'VENCIDO';
-    else if (txt.includes('PRÓXIMO') || txt.includes('PROXIMO')) label = typeof dias === 'number' ? `${dias} DÍAS` : 'PRÓXIMO';
-    else if (txt.includes('EN PLAZO') || txt.includes('AL DÍA') || txt.includes('AL DIA')) label = 'AL DÍA';
+    else if (txt.includes('PRÓXIMO') || txt.includes('PROXIMO'))
+      label = typeof dias === 'number' ? `${dias} DÍAS` : 'PRÓXIMO';
+    else if (
+      txt.includes('EN PLAZO') ||
+      txt.includes('AL DÍA') ||
+      txt.includes('AL DIA')
+    )
+      label = 'AL DÍA';
 
-      const cls = txt.includes('VENCIDO')
+    const cls = txt.includes('VENCIDO')
+      ? 'bg-red-100 text-red-800 border-red-200'
+      : txt.includes('VENCE HOY')
         ? 'bg-red-100 text-red-800 border-red-200'
-        : txt.includes('VENCE HOY')
-          ? 'bg-red-100 text-red-800 border-red-200'
-          : txt.includes('PRÓXIMO') || txt.includes('PROXIMO')
-            ? 'bg-amber-100 text-amber-800 border-amber-200'
-            : 'bg-emerald-100 text-emerald-800 border-emerald-200';
+        : txt.includes('PRÓXIMO') || txt.includes('PROXIMO')
+          ? 'bg-amber-100 text-amber-800 border-amber-200'
+          : 'bg-emerald-100 text-emerald-800 border-emerald-200';
 
     return (
-      <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${cls}`}>
+      <span
+        className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${cls}`}
+      >
         {label}
       </span>
     );
@@ -220,7 +236,8 @@ export default function CasosActivos() {
   function renderEstadoBadge(caso) {
     const e = getCaseStatus(caso, 'reportado');
     const label = getCaseStatusLabel(caso, 'Reportado');
-    const tone = e === 'cerrado' ? 'slate' : e === 'en seguimiento' ? 'green' : 'amber';
+    const tone =
+      e === 'cerrado' ? 'slate' : e === 'en seguimiento' ? 'green' : 'amber';
     const cls =
       tone === 'green'
         ? 'bg-green-100 text-green-800 border-green-200'
@@ -228,7 +245,11 @@ export default function CasosActivos() {
           ? 'bg-amber-100 text-amber-800 border-amber-200'
           : 'bg-slate-100 text-slate-800 border-slate-200';
     return (
-      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${cls}`}>{label}</span>
+      <span
+        className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${cls}`}
+      >
+        {label}
+      </span>
     );
   }
 
@@ -254,7 +275,7 @@ export default function CasosActivos() {
       {/* Header */}
       <div className="flex items-center justify-between px-2 mb-4">
         <div className="flex items-center gap-3 min-w-0">
-          <h2 className="text-xl font-black text-slate-900 tracking-tight truncate">
+          <h2 className="text-[1.375rem] font-semibold text-slate-900 tracking-tight truncate">
             Listado de Casos Activos
           </h2>
           <span className="text-xs font-bold px-2 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
@@ -264,7 +285,7 @@ export default function CasosActivos() {
 
         <button
           onClick={() => setNuevo(true)}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-2 text-sm px-4 py-2 rounded-xl font-semibold shadow-sm"
+          className="bg-brand-600 hover:bg-brand-700 text-white flex items-center gap-2 text-sm px-4 py-2.5 rounded-xl font-semibold shadow-soft"
         >
           <Plus size={18} />
           <span className="hidden sm:inline">Nuevo Caso</span>
@@ -280,14 +301,14 @@ export default function CasosActivos() {
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1 rounded border border-slate-200 disabled:opacity-50 hover:bg-slate-50"
+              className="px-3 py-1.5 rounded-lg border border-slate-200 disabled:opacity-50 hover:bg-brand-50 hover:border-brand-200 transition-colors"
             >
               Anterior
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="px-3 py-1 rounded border border-slate-200 disabled:opacity-50 hover:bg-slate-50"
+              className="px-3 py-1.5 rounded-lg border border-slate-200 disabled:opacity-50 hover:bg-brand-50 hover:border-brand-200 transition-colors"
             >
               Siguiente
             </button>
@@ -304,7 +325,7 @@ export default function CasosActivos() {
             setPage(1);
           }}
           placeholder="Buscar por estudiante, curso o conducta"
-          className="flex-1 px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+          className="flex-1 px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-500 transition-colors"
         />
         <select
           value={estadoFiltro}
@@ -312,7 +333,7 @@ export default function CasosActivos() {
             setEstadoFiltro(e.target.value);
             setPage(1);
           }}
-          className="px-3 py-2 rounded-lg border border-slate-200 bg-white"
+          className="px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-500"
         >
           <option value="Todos">Todos</option>
           <option value="Reportado">Reportado</option>
@@ -324,7 +345,7 @@ export default function CasosActivos() {
             setPageSize(Number(e.target.value));
             setPage(1);
           }}
-          className="px-3 py-2 rounded-lg border border-slate-200 bg-white"
+          className="px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-500"
         >
           <option value={10}>10 por página</option>
           <option value={20}>20 por página</option>
@@ -336,14 +357,14 @@ export default function CasosActivos() {
             setEstadoFiltro('Todos');
             setPage(1);
           }}
-          className="px-3 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"
+          className="px-3 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-brand-50 hover:border-brand-200"
         >
           Limpiar
         </button>
       </div>
 
-      <div className="glass-panel overflow-hidden flex flex-col border border-slate-200 shadow-sm">
-        <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/60 backdrop-blur-sm flex justify-between items-center text-xs font-bold text-slate-600 uppercase tracking-wider shrink-0">
+      <div className="glass-panel overflow-hidden flex flex-col border border-slate-200 shadow-sm ring-1 ring-brand-100/50">
+        <div className="px-5 py-3 border-b border-slate-100 bg-gradient-to-r from-brand-50/70 to-transparent backdrop-blur-sm flex justify-between items-center text-xs font-bold text-slate-600 uppercase tracking-wider shrink-0">
           <span>Expedientes</span>
           <span>Etapa</span>
         </div>
@@ -374,10 +395,12 @@ export default function CasosActivos() {
               <div className="mx-auto w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
                 <Folder className="text-slate-400" size={28} />
               </div>
-              <p className="text-slate-600 font-medium mb-4">No hay casos activos en este momento.</p>
+              <p className="text-slate-600 font-medium mb-4">
+                No hay casos activos en este momento.
+              </p>
               <button
                 onClick={() => setNuevo(true)}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition-colors shadow-sm"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-600 text-white font-semibold hover:bg-brand-700 transition-colors shadow-soft"
               >
                 <Plus size={18} />
                 Crear nuevo caso
@@ -390,14 +413,16 @@ export default function CasosActivos() {
               <div className="mx-auto w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-3">
                 <Search className="text-slate-400" size={20} />
               </div>
-              <p className="text-slate-600 font-medium mb-3">No hay resultados con los filtros seleccionados.</p>
+              <p className="text-slate-600 font-medium mb-3">
+                No hay resultados con los filtros seleccionados.
+              </p>
               <button
                 onClick={() => {
                   setSearch('');
                   setEstadoFiltro('Todos');
                   setPage(1);
                 }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-brand-50 hover:border-brand-200 font-medium transition-colors"
               >
                 <X size={16} />
                 Limpiar filtros
@@ -419,8 +444,8 @@ export default function CasosActivos() {
               return (
                 <div
                   key={caso.id}
-                className="bg-white rounded-xl border border-slate-200 hover:border-slate-300 transition shadow-sm hover:shadow-md"
-              >
+                  className="bg-white rounded-2xl border border-slate-200 hover:border-brand-200 transition-all shadow-sm hover:shadow-soft hover:-translate-y-[1px]"
+                >
                   <div className="flex items-center gap-4 p-4">
                     {/* Avatar */}
                     <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-xs font-extrabold text-slate-700 shrink-0">
@@ -440,7 +465,9 @@ export default function CasosActivos() {
                             </span>
                           </div>
                           <p className="text-xs text-slate-600 line-clamp-2 mt-0.5">
-                            {caso.short_description || caso.conduct_category || '—'}
+                            {caso.short_description ||
+                              caso.conduct_category ||
+                              '—'}
                           </p>
                         </div>
 
@@ -465,7 +492,7 @@ export default function CasosActivos() {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => setSelectedCaso(caso)}
-                            className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 tap-target"
+                            className="p-2 rounded-lg border border-slate-200 hover:bg-brand-50 hover:border-brand-200 text-slate-700 tap-target transition-colors"
                             title="Ver detalle"
                             aria-label="Ver detalle"
                           >
@@ -480,16 +507,20 @@ export default function CasosActivos() {
                                 }
                                 navigate(`/seguimientos/${caso.id}`);
                               } catch (e) {
-                                alert(`No se pudo iniciar seguimiento: ${e?.message || e}`);
+                                alert(
+                                  `No se pudo iniciar seguimiento: ${e?.message || e}`,
+                                );
                               }
                             }}
-                            className={`px-3 py-2 rounded-lg text-xs font-semibold hover:opacity-90 ${
+                            className={`px-3 py-2.5 rounded-lg text-xs font-semibold hover:opacity-90 ${
                               estadoRaw === 'reportado'
                                 ? 'bg-amber-600 text-white'
-                                : 'bg-slate-900 text-white hover:bg-slate-800'
+                                : 'bg-brand-600 text-white hover:bg-brand-700'
                             }`}
                           >
-                            {estadoRaw === 'reportado' ? 'Iniciar seguimiento' : 'Seguimiento'}
+                            {estadoRaw === 'reportado'
+                              ? 'Iniciar seguimiento'
+                              : 'Seguimiento'}
                           </button>
                         </div>
                       </div>

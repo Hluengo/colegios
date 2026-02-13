@@ -25,7 +25,7 @@ export default function CaseStudentHeaderCard({
 }) {
   return (
     <div className="rounded-xl overflow-hidden border shadow-sm">
-      <div className="bg-slate-700 px-4 sm:px-5 py-3 sm:py-4 text-white">
+      <div className="bg-brand-700 px-4 sm:px-5 py-3 sm:py-4 text-white">
         <div className="flex items-start gap-3 sm:gap-4">
           {/* Avatar */}
           <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/15 flex items-center justify-center font-bold text-sm sm:text-base flex-shrink-0">

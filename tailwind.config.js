@@ -4,44 +4,44 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
       },
       colors: {
-        // Paleta fría en escala de grises + acento azul grisáceo
+        // Paleta SaaS enterprise: sobria, corporativa y de bajo ruido
         brand: {
-          50: '#f7f8f9',
-          100: '#eef1f3',
-          200: '#e1e6e9',
-          300: '#cfd7dc',
-          400: '#b8c3ca',
-          500: '#6b7280',
-          600: '#4b5563',
-          700: '#27313a',
-          800: '#0b1220',
-          900: '#05070a',
+          50: '#f6f8fb',
+          100: '#eef2f7',
+          200: '#dce4ef',
+          300: '#c4d1e1',
+          400: '#9fb2c9',
+          500: '#768ca8',
+          600: '#5f7694',
+          700: '#4b607c',
+          800: '#3b4d66',
+          900: '#2f3f54',
         },
         accent: {
-          50: '#f4f6f8',
-          100: '#e9eef2',
-          500: '#334155',
-          600: '#25313b',
+          50: '#f7f9fc',
+          100: '#edf2f8',
+          500: '#6b7f9a',
+          600: '#4d617d',
         },
         slate: {
-          850: '#1f2937',
-          900: '#0b1220',
-          950: '#07090b',
+          850: '#1e293b',
+          900: '#0f172a',
+          950: '#020617',
         },
       },
       backgroundImage: {
-        'gradient-brand': 'linear-gradient(135deg, #f8fafb 0%, #e6eef6 100%)',
-        'gradient-dark': 'linear-gradient(to bottom right, #0b1220, #1f2937)',
+        'gradient-brand': 'linear-gradient(135deg, #f7f9fc 0%, #eef2f7 100%)',
+        'gradient-dark': 'linear-gradient(to bottom right, #2f3f54, #4b607c)',
         glass:
-          'linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.6) 100%)',
+          'linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.82) 100%)',
       },
       boxShadow: {
-        glass: '0 8px 32px 0 rgba(15, 23, 42, 0.06)',
-        'glass-sm': '0 4px 16px 0 rgba(15, 23, 42, 0.04)',
-        soft: '0 6px 18px rgba(2,6,23,0.08)',
+        glass: '0 10px 26px 0 rgba(15, 23, 42, 0.08)',
+        'glass-sm': '0 4px 12px 0 rgba(15, 23, 42, 0.06)',
+        soft: '0 8px 20px rgba(15,23,42,0.10)',
       },
       borderRadius: {
         // Estandarizar radios de bordes

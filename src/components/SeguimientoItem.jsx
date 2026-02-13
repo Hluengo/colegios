@@ -114,13 +114,9 @@ export default function SeguimientoItem({ seg, readOnly = false }) {
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 hover:border-brand-200 transition-colors">
         <div className="flex justify-between items-start">
-          <p className="text-sm font-bold text-slate-900">
-            {seg.action_type}
-          </p>
+          <p className="text-sm font-bold text-slate-900">{seg.action_type}</p>
 
-          <span
-            className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700"
-          >
+          <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
             Completada
           </span>
         </div>
@@ -194,26 +190,35 @@ export default function SeguimientoItem({ seg, readOnly = false }) {
           )}
           {!loading && evidencias.length > 0 && (
             <ul className="space-y-2">
-              {evidencias.map((row) => (<li
+              {evidencias.map((row) => (
+                <li
                   key={row.id}
                   className="flex items-center justify-between text-sm bg-white border rounded px-3 py-2 shadow-sm"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    {(row.content_type || "").startsWith("image/") && row.url ? (
-                      <img src={row.url} alt={row.file_name} className="w-10 h-10 rounded object-cover border" />
+                    {(row.content_type || '').startsWith('image/') &&
+                    row.url ? (
+                      <img
+                        src={row.url}
+                        alt={row.file_name}
+                        className="w-10 h-10 rounded object-cover border"
+                      />
                     ) : (
                       <div className="w-10 h-10 rounded bg-slate-100 border flex items-center justify-center text-slate-500 text-xs">
-                        {((row.content_type || "").includes("pdf")) ? "PDF" : "FILE"}
+                        {(row.content_type || '').includes('pdf')
+                          ? 'PDF'
+                          : 'FILE'}
                       </div>
                     )}
                     <div className="min-w-0">
-                    <p className="font-medium text-gray-800 truncate">
-                      {row.file_name}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {(row.file_size ? row.file_size / 1024 : 0).toFixed(1)} KB
-                    </p>
-                  </div>
+                      <p className="font-medium text-gray-800 truncate">
+                        {row.file_name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {(row.file_size ? row.file_size / 1024 : 0).toFixed(1)}{' '}
+                        KB
+                      </p>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <button

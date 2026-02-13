@@ -5,7 +5,15 @@ import { startSeguimiento } from '../api/db';
 import { emitDataUpdated } from '../utils/refreshBus';
 import { getStudentName } from '../utils/studentName';
 import InvolucradosListPlaceholder from './InvolucradosListPlaceholder';
-import { ArrowLeft, FileText, Calendar, Clock, Users, UserRound, GraduationCap } from 'lucide-react';
+import {
+  ArrowLeft,
+  FileText,
+  Calendar,
+  Clock,
+  Users,
+  UserRound,
+  GraduationCap,
+} from 'lucide-react';
 import { getCaseStatus, getCaseStatusLabel } from '../utils/caseStatus';
 
 function Badge({ children, tone = 'slate' }) {
@@ -35,7 +43,9 @@ function InfoCard({ icon: Icon, label, value }) {
         {Icon ? <Icon size={14} /> : null}
         {label}
       </div>
-      <div className="mt-1 text-sm font-semibold text-slate-900">{value || '—'}</div>
+      <div className="mt-1 text-sm font-semibold text-slate-900">
+        {value || '—'}
+      </div>
     </div>
   );
 }
@@ -54,8 +64,7 @@ export default function CaseDetailModal({
   const isReportado = estadoRaw === 'reportado';
 
   const title = useMemo(
-    () =>
-      getStudentName(caso?.students, 'Detalle del caso'),
+    () => getStudentName(caso?.students, 'Detalle del caso'),
     [caso],
   );
 
@@ -78,9 +87,13 @@ export default function CaseDetailModal({
           }
           navigate(`/seguimientos/${caso.id}`);
         }}
-        className="px-5 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800"
+        className="px-5 py-2.5 rounded-xl bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700"
       >
-        {isClosed ? 'Ver informe / Exportar' : isReportado ? 'Iniciar seguimiento' : 'Ver seguimiento'}
+        {isClosed
+          ? 'Ver informe / Exportar'
+          : isReportado
+            ? 'Iniciar seguimiento'
+            : 'Ver seguimiento'}
       </button>
     </div>
   );
@@ -105,14 +118,14 @@ export default function CaseDetailModal({
               <div className="flex items-center gap-3">
                 <button
                   onClick={onClose}
-                  className="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-slate-200 hover:bg-slate-50 tap-target"
+                  className="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-slate-200 hover:bg-brand-50 tap-target"
                   aria-label="Volver"
                 >
                   <ArrowLeft size={18} />
                 </button>
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight truncate">
+                    <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight truncate">
                       {title}
                     </h2>
                     <Badge tone="slate">
@@ -138,7 +151,7 @@ export default function CaseDetailModal({
             <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
               <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
                 <FileText size={18} className="text-green-600" />
-                <h3 className="text-sm font-black text-slate-800 tracking-wider uppercase">
+                <h3 className="text-sm font-semibold text-slate-800 tracking-wider uppercase">
                   Descripción de los hechos
                 </h3>
               </div>
@@ -168,10 +181,7 @@ export default function CaseDetailModal({
               <InfoCard
                 icon={UserRound}
                 label="Responsable"
-                value={
-                  caso.responsible ||
-                  '—'
-                }
+                value={caso.responsible || '—'}
               />
             </div>
           </div>
@@ -181,7 +191,7 @@ export default function CaseDetailModal({
             <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
               <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
                 <Users size={18} className="text-slate-700" />
-                <h3 className="text-sm font-black text-slate-800 tracking-wider uppercase">
+                <h3 className="text-sm font-semibold text-slate-800 tracking-wider uppercase">
                   Involucrados en el hecho
                 </h3>
               </div>
@@ -223,8 +233,9 @@ export default function CaseDetailModal({
 
             {isReportado ? (
               <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                Este caso está <span className="font-semibold">reportado</span> y aún no está en seguimiento. El
-                seguimiento es quien genera los pasos del debido proceso.
+                Este caso está <span className="font-semibold">reportado</span>{' '}
+                y aún no está en seguimiento. El seguimiento es quien genera los
+                pasos del debido proceso.
               </div>
             ) : null}
           </aside>

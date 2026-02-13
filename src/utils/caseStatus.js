@@ -1,6 +1,8 @@
 export function getCaseStatus(caso, fallback = '') {
   const raw = caso?.status ?? '';
-  return String(raw || fallback).trim().toLowerCase();
+  return String(raw || fallback)
+    .trim()
+    .toLowerCase();
 }
 
 const STATUS_LABELS = {

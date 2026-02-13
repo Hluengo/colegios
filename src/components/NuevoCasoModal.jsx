@@ -296,7 +296,7 @@ export default function NuevoCasoModal({ onClose, onSaved }) {
 
           {/* Header */}
           <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-slate-100">
-            <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+            <h2 className="text-lg sm:text-xl font-semibold text-slate-900 tracking-tight">
               Nuevo Caso
             </h2>
             <button
@@ -310,7 +310,6 @@ export default function NuevoCasoModal({ onClose, onSaved }) {
           </div>
 
           <div className="p-5 sm:p-6 flex-1 overflow-y-auto space-y-6">
-
             {/* FECHA / HORA */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
@@ -322,16 +321,18 @@ export default function NuevoCasoModal({ onClose, onSaved }) {
                   type="date"
                   value={fecha}
                   onChange={(e) => setFecha(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-200"
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-sm font-semibold text-slate-700">Hora</label>
+                <label className="text-sm font-semibold text-slate-700">
+                  Hora
+                </label>
                 <input
                   type="time"
                   value={hora}
                   onChange={(e) => setHora(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-200"
                 />
               </div>
             </div>
@@ -339,49 +340,55 @@ export default function NuevoCasoModal({ onClose, onSaved }) {
             {/* Curso / Estudiante / Rol */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1">
-                <label className="text-sm font-semibold text-slate-700">Curso</label>
+                <label className="text-sm font-semibold text-slate-700">
+                  Curso
+                </label>
                 <select
                   value={curso}
                   onChange={(e) => setCurso(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-200"
                 >
-                <option value="">Selecciona un curso</option>
-                {cursos.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
+                  <option value="">Selecciona un curso</option>
+                  {cursos.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               <div className="space-y-1">
-                <label className="text-sm font-semibold text-slate-700">Estudiante</label>
+                <label className="text-sm font-semibold text-slate-700">
+                  Estudiante
+                </label>
                 <select
                   value={estudianteId}
                   onChange={(e) => setEstudianteId(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-200"
                 >
-                <option value="">Selecciona un estudiante</option>
-                {estudiantes.map((est) => (
-                  <option key={est.id} value={est.id}>
-                    {est.first_name} {est.last_name}
-                  </option>
-                ))}
+                  <option value="">Selecciona un estudiante</option>
+                  {estudiantes.map((est) => (
+                    <option key={est.id} value={est.id}>
+                      {est.first_name} {est.last_name}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               <div className="space-y-1">
-                <label className="text-sm font-semibold text-slate-700">Rol</label>
+                <label className="text-sm font-semibold text-slate-700">
+                  Rol
+                </label>
                 <select
                   value={rolEstudiante}
                   onChange={(e) => setRolEstudiante(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-200"
                 >
-                <option value="">Selecciona rol</option>
-                <option value="Afectado">Afectado</option>
-                <option value="Agresor">Agresor</option>
-                <option value="Testigo">Testigo</option>
-                <option value="Denunciante">Denunciante</option>
+                  <option value="">Selecciona rol</option>
+                  <option value="Afectado">Afectado</option>
+                  <option value="Agresor">Agresor</option>
+                  <option value="Testigo">Testigo</option>
+                  <option value="Denunciante">Denunciante</option>
                 </select>
               </div>
             </div>
@@ -468,7 +475,7 @@ export default function NuevoCasoModal({ onClose, onSaved }) {
                 Descripción de los hechos
               </label>
               <textarea
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-slate-300"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand-200"
                 rows={4}
                 placeholder="Descripción breve y objetiva del hecho ocurrido…"
                 value={descripcionLibre}
@@ -485,7 +492,7 @@ export default function NuevoCasoModal({ onClose, onSaved }) {
                 <select
                   value={cursoInv}
                   onChange={(e) => setCursoInv(e.target.value)}
-                  className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                  className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-200"
                 >
                   <option value="">Selecciona curso</option>
                   {cursos.map((c) => (
@@ -504,7 +511,7 @@ export default function NuevoCasoModal({ onClose, onSaved }) {
                     );
                     setNombreInv(s ? `${s.first_name} ${s.last_name}` : '');
                   }}
-                  className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                  className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-200"
                 >
                   <option value="">Selecciona estudiante</option>
                   {estudiantesInv.map((s) => (
@@ -517,7 +524,7 @@ export default function NuevoCasoModal({ onClose, onSaved }) {
                 <select
                   value={rolInv}
                   onChange={(e) => setRolInv(e.target.value)}
-                  className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                  className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-200"
                 >
                   <option value="">Selecciona rol</option>
                   <option value="Afectado">Afectado</option>
@@ -535,7 +542,7 @@ export default function NuevoCasoModal({ onClose, onSaved }) {
                       setSelectedEstInv('');
                       setCursoInv('');
                     }}
-                    className="px-4 py-3 rounded-xl border border-slate-200 hover:bg-slate-50 w-full sm:w-auto"
+                    className="px-4 py-3 rounded-xl border border-slate-200 hover:bg-brand-50 w-full sm:w-auto"
                   >
                     Limpiar
                   </button>
@@ -580,7 +587,8 @@ export default function NuevoCasoModal({ onClose, onSaved }) {
                         {it.nombre}
                       </span>
                       <span className="text-slate-500 text-xs">
-                        {it.curso ? `${it.curso} • ` : ''}{it.rol}
+                        {it.curso ? `${it.curso} • ` : ''}
+                        {it.rol}
                       </span>
                       <button
                         type="button"
@@ -607,7 +615,8 @@ export default function NuevoCasoModal({ onClose, onSaved }) {
               </h3>
               <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
                 <p className="text-sm text-slate-600 mb-4">
-                  Define quién reporta el caso. Esto queda visible en el detalle y en listados.
+                  Define quién reporta el caso. Esto queda visible en el detalle
+                  y en listados.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -653,11 +662,11 @@ export default function NuevoCasoModal({ onClose, onSaved }) {
           </div>
 
           {/* ACCIONES: footer siempre visible */}
-          <div className="px-5 sm:px-6 py-4 border-t border-slate-100 bg-slate-50/60 sticky bottom-0 flex items-center justify-end gap-3">
+          <div className="px-5 sm:px-6 py-4 border-t border-slate-100 bg-gradient-to-r from-brand-50/70 to-transparent sticky bottom-0 flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50"
+              className="px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-brand-50"
             >
               Cancelar
             </button>
@@ -665,7 +674,7 @@ export default function NuevoCasoModal({ onClose, onSaved }) {
               type="button"
               onClick={guardarCaso}
               disabled={guardando || loading || !!error}
-              className="px-5 py-2.5 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800 disabled:opacity-50"
+              className="px-5 py-2.5 rounded-xl bg-brand-600 text-white font-semibold hover:bg-brand-700 disabled:opacity-50"
             >
               {guardando ? 'Guardando…' : 'Guardar Caso'}
             </button>

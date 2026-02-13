@@ -277,7 +277,7 @@ export default function Estadisticas() {
         </div>
         <button
           onClick={handleExportPDF}
-          className="btn-primary bg-green-600 hover:bg-green-700 text-white transition shadow-sm px-4 py-2 text-sm font-medium"
+          className="btn-primary bg-brand-600 hover:bg-brand-700 text-white transition shadow-sm px-4 py-2 text-sm font-medium"
         >
           Exportar PDF
         </button>
@@ -299,7 +299,7 @@ export default function Estadisticas() {
             <select
               value={anio}
               onChange={(e) => setAnio(e.target.value)}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none transition-all"
+              className="w-full bg-white text-slate-800 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none transition-all"
             >
               <option value="">Todos</option>
               {aniosDisponibles.map((y) => (
@@ -317,7 +317,7 @@ export default function Estadisticas() {
             <select
               value={semestre}
               onChange={(e) => setSemestre(e.target.value)}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none transition-all disabled:bg-slate-50 disabled:text-slate-500"
+              className="w-full bg-white text-slate-800 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none transition-all disabled:bg-slate-50 disabled:text-slate-500"
               disabled={!anio}
             >
               <option value="Todos">Año completo</option>
@@ -496,7 +496,7 @@ export default function Estadisticas() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {reincidentesList.slice(0, 50).map((r, i) => (
-                    <tr key={i} className="hover:bg-slate-50 transition-colors">
+                    <tr key={i} className="hover:bg-brand-50 transition-colors">
                       <td className="px-4 py-2.5">
                         <button
                           onClick={() =>

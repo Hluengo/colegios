@@ -119,7 +119,7 @@ export default function CasosCerrados() {
     <div className="h-full p-2">
       <div className="flex items-center justify-between px-2 mb-4">
         <div className="flex items-center gap-3 min-w-0">
-          <h2 className="text-xl font-black text-slate-900 tracking-tight truncate">
+          <h2 className="text-[1.375rem] font-semibold text-slate-900 tracking-tight truncate">
             Archivo Histórico
           </h2>
           <span className="text-xs font-bold px-2 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
@@ -137,7 +137,7 @@ export default function CasosCerrados() {
             setPage(1);
           }}
           placeholder="Buscar por estudiante, curso o conducta"
-          className="flex-1 px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-200"
+          className="flex-1 px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-500"
         />
         <select
           value={pageSize}
@@ -145,7 +145,7 @@ export default function CasosCerrados() {
             setPageSize(Number(e.target.value));
             setPage(1);
           }}
-          className="px-3 py-2 rounded-lg border border-slate-200 bg-white"
+          className="px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-500"
         >
           <option value={10}>10 por página</option>
           <option value={20}>20 por página</option>
@@ -156,134 +156,130 @@ export default function CasosCerrados() {
             setSearch('');
             setPage(1);
           }}
-          className="px-3 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"
+          className="px-3 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-brand-50 hover:border-brand-200"
         >
           Limpiar
         </button>
       </div>
 
-      <div className="glass-panel overflow-hidden flex flex-col border border-slate-200 shadow-sm">
+      <div className="glass-panel overflow-hidden flex flex-col border border-slate-200 shadow-sm ring-1 ring-brand-100/50">
         {/* ENCABEZADO LISTA */}
-        <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/60 backdrop-blur-sm flex justify-between items-center text-xs font-bold text-slate-600 uppercase tracking-wider">
+        <div className="px-5 py-3 border-b border-slate-100 bg-gradient-to-r from-brand-50/70 to-transparent backdrop-blur-sm flex justify-between items-center text-xs font-bold text-slate-600 uppercase tracking-wider">
           <span>Listado Cerrados</span>
           <span>Fecha Cierre</span>
         </div>
 
         {/* LISTA SCROLLABLE */}
         <div className="overflow-y-auto p-2 space-y-2 custom-scrollbar">
-              {loading && (
-                <div className="space-y-2 p-2">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="bg-white rounded-xl border border-slate-100 p-4 animate-pulse"
-                    >
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="space-y-2 flex-1">
-                          <div className="h-3 w-1/3 bg-slate-200 rounded" />
-                          <div className="h-3 w-1/2 bg-slate-200 rounded" />
-                        </div>
-                        <div className="h-6 w-20 bg-slate-200 rounded-full" />
-                      </div>
+          {loading && (
+            <div className="space-y-2 p-2">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-white rounded-xl border border-slate-100 p-4 animate-pulse"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="space-y-2 flex-1">
+                      <div className="h-3 w-1/3 bg-slate-200 rounded" />
+                      <div className="h-3 w-1/2 bg-slate-200 rounded" />
                     </div>
-                  ))}
-                </div>
-              )}
-
-              {!loading && totalCasos === 0 && (
-                <div className="p-10 text-center text-slate-500 text-sm">
-                  No hay casos cerrados.
-                  <div className="mt-4">
-                    <button
-                      onClick={() => navigate('/casos-activos')}
-                      className="px-4 py-2 rounded-lg bg-slate-800 text-white hover:bg-slate-900"
-                    >
-                      Ir a casos activos
-                    </button>
+                    <div className="h-6 w-20 bg-slate-200 rounded-full" />
                   </div>
                 </div>
-              )}
+              ))}
+            </div>
+          )}
 
-              {!loading && totalCasos > 0 && casos.length === 0 && (
-                <div className="p-10 text-center text-slate-500 text-sm">
-                  No hay resultados con esos filtros.
-                  <div className="mt-3">
-                    <button
-                      onClick={() => {
-                        setSearch('');
-                        setPage(1);
-                      }}
-                      className="px-3 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"
-                    >
-                      Limpiar filtros
-                    </button>
+          {!loading && totalCasos === 0 && (
+            <div className="p-10 text-center text-slate-500 text-sm">
+              No hay casos cerrados.
+              <div className="mt-4">
+                <button
+                  onClick={() => navigate('/casos-activos')}
+                  className="px-4 py-2.5 rounded-lg bg-brand-600 text-white hover:bg-brand-700 shadow-soft"
+                >
+                  Ir a casos activos
+                </button>
+              </div>
+            </div>
+          )}
+
+          {!loading && totalCasos > 0 && casos.length === 0 && (
+            <div className="p-10 text-center text-slate-500 text-sm">
+              No hay resultados con esos filtros.
+              <div className="mt-3">
+                <button
+                  onClick={() => {
+                    setSearch('');
+                    setPage(1);
+                  }}
+                  className="px-3 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-brand-50 hover:border-brand-200 transition-colors"
+                >
+                  Limpiar filtros
+                </button>
+              </div>
+            </div>
+          )}
+
+          {!loading &&
+            pagedCasos.map((caso) => {
+              return (
+                <div
+                  key={caso.id}
+                  className="bg-white rounded-2xl border border-slate-200 hover:border-brand-200 transition-all shadow-sm hover:shadow-soft hover:-translate-y-[1px]"
+                >
+                  <div className="p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${tipBadgeClasses(caso.conduct_type)}`}
+                      >
+                        {caso.conduct_type}
+                      </span>
+                      <span className="text-[10px] font-medium text-slate-600">
+                        {formatDate(caso.incident_date)}
+                      </span>
+                    </div>
+
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-800 mb-1 line-clamp-1 group-hover:text-slate-900 transition-colors">
+                        {getStudentName(caso.students, 'Estudiante')}
+                      </h4>
+                      <p className="text-xs text-slate-600 line-clamp-1">
+                        {caso.conduct_category}
+                      </p>
+                    </div>
+
+                    <div className="mt-3 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[8px] font-bold text-slate-600">
+                          {caso.course_incident?.substring(0, 2) || 'NA'}
+                        </div>
+                        <span className="text-[10px] text-slate-600 font-medium">
+                          Cerrado
+                        </span>
+                      </div>
+
+                      <button
+                        onClick={() => navigate(`/cierre-caso/${caso.id}`)}
+                        className="p-2 rounded-lg border border-slate-200 hover:bg-brand-50 hover:border-brand-200 text-slate-700 tap-target transition-colors"
+                        title="Ver detalle"
+                        aria-label="Ver detalle"
+                      >
+                        <Eye size={18} />
+                      </button>
+                      <button
+                        onClick={() => handleExportPDF(caso)}
+                        className="p-2 rounded-lg border border-slate-200 hover:bg-brand-50 hover:border-brand-200 text-slate-700 tap-target transition-colors"
+                        title="Imprimir informe"
+                        aria-label="Imprimir informe"
+                      >
+                        <FileText size={18} />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              )}
-
-              {!loading &&
-                pagedCasos.map((caso) => {
-                  return (
-                    <div
-                      key={caso.id}
-                      className="bg-white rounded-xl border border-slate-200 hover:border-slate-300 transition shadow-sm hover:shadow-md"
-                    >
-                      <div className="p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${tipBadgeClasses(caso.conduct_type)}`}
-                          >
-                            {caso.conduct_type}
-                          </span>
-                          <span className="text-[10px] font-medium text-slate-600">
-                            {formatDate(caso.incident_date)}
-                          </span>
-                        </div>
-
-                        <div>
-                          <h4 className="text-sm font-bold text-slate-800 mb-1 line-clamp-1 group-hover:text-slate-900 transition-colors">
-                            {getStudentName(
-                              caso.students,
-                              'Estudiante',
-                            )}
-                          </h4>
-                          <p className="text-xs text-slate-600 line-clamp-1">
-                            {caso.conduct_category}
-                          </p>
-                        </div>
-
-                        <div className="mt-3 flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[8px] font-bold text-slate-600">
-                              {caso.course_incident?.substring(0, 2) ||
-                                'NA'}
-                            </div>
-                            <span className="text-[10px] text-slate-600 font-medium">
-                              Cerrado
-                            </span>
-                          </div>
-
-                          <button
-                            onClick={() => navigate(`/cierre-caso/${caso.id}`)}
-                            className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 tap-target"
-                            title="Ver detalle"
-                            aria-label="Ver detalle"
-                          >
-                            <Eye size={18} />
-                          </button>
-                          <button
-                            onClick={() => handleExportPDF(caso)}
-                            className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 tap-target"
-                            title="Imprimir informe"
-                            aria-label="Imprimir informe"
-                          >
-                            <FileText size={18} />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+              );
+            })}
         </div>
       </div>
 
@@ -296,21 +292,20 @@ export default function CasosCerrados() {
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1 rounded border border-slate-200 disabled:opacity-50 hover:bg-slate-50"
+              className="px-3 py-1.5 rounded-lg border border-slate-200 disabled:opacity-50 hover:bg-brand-50 hover:border-brand-200 transition-colors"
             >
               Anterior
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="px-3 py-1 rounded border border-slate-200 disabled:opacity-50 hover:bg-slate-50"
+              className="px-3 py-1.5 rounded-lg border border-slate-200 disabled:opacity-50 hover:bg-brand-50 hover:border-brand-200 transition-colors"
             >
               Siguiente
             </button>
           </div>
         </div>
       )}
-
     </div>
   );
 }

@@ -110,9 +110,14 @@ export default function Dashboard() {
     data: plazos,
     loading: loadingPlazos,
     error: errorPlazos,
-  } = useCachedAsync('control_alertas', () => getAllControlAlertas(), [refreshKey], {
-    ttlMs: 30000,
-  });
+  } = useCachedAsync(
+    'control_alertas',
+    () => getAllControlAlertas(),
+    [refreshKey],
+    {
+      ttlMs: 30000,
+    },
+  );
 
   const loading = loadingCases || loadingPlazos;
   const error = errorCases || errorPlazos;
@@ -196,11 +201,7 @@ export default function Dashboard() {
     const esHoy = fechaSolo === hoyISO;
 
     if (esHoy) {
-      logger.debug(
-        '✅ Caso creado hoy:',
-        c.students,
-        fechaCreacion,
-      );
+      logger.debug('✅ Caso creado hoy:', c.students, fechaCreacion);
     }
     return esHoy;
   });
@@ -467,8 +468,14 @@ export default function Dashboard() {
                 margin={{ top: 10, right: 10, left: 0, bottom: 10 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="curso" tick={{ fontSize: 11, fill: '#64748b' }} />
-                <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#64748b' }} />
+                <XAxis
+                  dataKey="curso"
+                  tick={{ fontSize: 11, fill: '#64748b' }}
+                />
+                <YAxis
+                  allowDecimals={false}
+                  tick={{ fontSize: 11, fill: '#64748b' }}
+                />
                 <Tooltip
                   contentStyle={{
                     borderRadius: '8px',
@@ -499,7 +506,7 @@ export default function Dashboard() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => {}}
-                className="px-3 py-1 text-sm border border-slate-200 rounded hover:bg-slate-50 text-slate-700"
+                className="px-3 py-1 text-sm border border-slate-200 rounded hover:bg-brand-50 text-slate-700"
               >
                 Ver todos
               </button>
@@ -607,9 +614,7 @@ export default function Dashboard() {
                             ? `${a.dias_restantes} días`
                             : '—'}
                           <div className="text-[11px] text-gray-400">
-                            {a.fecha_plazo
-                              ? formatDate(a.fecha_plazo)
-                              : ''}
+                            {a.fecha_plazo ? formatDate(a.fecha_plazo) : ''}
                           </div>
                         </div>
                       </div>
