@@ -8,7 +8,7 @@ import useConductCatalog from '../hooks/useConductCatalog';
 import { CARGOS } from '../constants/cargos';
 
 export default function NuevoCasoModal({ onClose, onSaved }) {
-  const firstFieldRef = useRef(null);
+  const timeFieldRef = useRef(null);
   const [fecha, setFecha] = useState('');
   const [hora, setHora] = useState('');
   const [curso, setCurso] = useState('');
@@ -89,11 +89,6 @@ export default function NuevoCasoModal({ onClose, onSaved }) {
 
     cargarEstudiantes();
   }, [curso]);
-
-  useEffect(() => {
-    // Focus first field when opening the modal
-    firstFieldRef.current?.focus();
-  }, []);
 
   // Cuando se selecciona un estudiante, autocompletar el campo de involucrados
   useEffect(() => {
@@ -313,25 +308,48 @@ export default function NuevoCasoModal({ onClose, onSaved }) {
             {/* FECHA / HORA */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-sm font-semibold text-slate-700">
-                  Fecha del incidente
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-semibold text-slate-700">
+                    Fecha del incidente
+                  </label>
+                  <button
+                    type="button"
+                    className="text-xs text-brand-700 hover:underline"
+                    onClick={() => setFecha(new Date().toISOString().slice(0, 10))}
+                  >
+                    Hoy
+                  </button>
+                </div>
                 <input
-                  ref={firstFieldRef}
                   type="date"
                   value={fecha}
                   onChange={(e) => setFecha(e.target.value)}
+                  onFocus={(e) => e.currentTarget.showPicker?.()}
+                  onClick={(e) => e.currentTarget.showPicker?.()}
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-200"
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-sm font-semibold text-slate-700">
-                  Hora
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-semibold text-slate-700">
+                    Hora
+                  </label>
+                  <button
+                    type="button"
+                    className="text-xs text-brand-700 hover:underline"
+                    onClick={() => setHora(new Date().toTimeString().slice(0, 5))}
+                  >
+                    Ahora
+                  </button>
+                </div>
                 <input
+                  ref={timeFieldRef}
                   type="time"
                   value={hora}
                   onChange={(e) => setHora(e.target.value)}
+                  onFocus={(e) => e.currentTarget.showPicker?.()}
+                  onClick={(e) => e.currentTarget.showPicker?.()}
+                  step={60}
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-200"
                 />
               </div>
