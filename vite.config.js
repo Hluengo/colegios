@@ -11,6 +11,7 @@ export default defineConfig({
     // PWA Configuration para funcionamiento offline
     VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: 'auto',
       includeAssets: ['favicon.ico', 'robots.txt', 'branding/*.png'],
       manifest: {
         name: 'Convivencia Escolar',
@@ -26,22 +27,25 @@ export default defineConfig({
           {
             src: 'pwa-192x192.png',
             sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png'
+            type: 'image/png',
           },
           {
             src: 'pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
-          }
-        ]
+          },
+          {
+            src: 'pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable',
+          },
+        ],
       },
       workbox: {
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
         // Archivos a cachear para offline
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         // Runtime caching para API calls
@@ -53,16 +57,16 @@ export default defineConfig({
               cacheName: 'images',
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
-              }
-            }
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+              },
+            },
           },
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'google-fonts-stylesheets'
-            }
+              cacheName: 'google-fonts-stylesheets',
+            },
           },
           {
             urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
@@ -71,9 +75,9 @@ export default defineConfig({
               cacheName: 'google-fonts-webfonts',
               expiration: {
                 maxEntries: 30,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
-              }
-            }
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+              },
+            },
           },
           // Supabase API caching
           {
@@ -84,16 +88,16 @@ export default defineConfig({
               networkTimeoutSeconds: 10,
               expiration: {
                 maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 // 1 day
+                maxAgeSeconds: 60 * 60 * 24, // 1 day
               },
               cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
-          }
-        ]
-      }
-    })
+                statuses: [0, 200],
+              },
+            },
+          },
+        ],
+      },
+    }),
   ],
   server: {
     host: true,
@@ -113,11 +117,7 @@ export default defineConfig({
       output: {
         // Code splitting optimizado
         manualChunks: {
-          'vendor-react': [
-            'react', 
-            'react-dom', 
-            'react-router-dom'
-          ],
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           'vendor-charts': ['recharts'],
           'vendor-pdf': ['@react-pdf/renderer'],
           'vendor-icons': ['lucide-react'],
