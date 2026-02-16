@@ -4,8 +4,14 @@ import { logger } from '../utils/logger';
 import { getEvidencePublicUrl, getEvidenceSignedUrl } from './evidence';
 
 const EMPTY = '';
+const CASE_STUDENT_SELECT =
+  'students:students!cases_student_id_fkey(id, tenant_id, first_name, last_name, rut)';
+const CASE_STUDENT_SELECT_FULL =
+  'students:students!cases_student_id_fkey(id, tenant_id, first_name, last_name, rut, level, course)';
 const CASE_LIST_SELECT = `
   id,
+  tenant_id,
+  student_id,
   created_at,
   incident_date,
   incident_time,
@@ -19,7 +25,7 @@ const CASE_LIST_SELECT = `
   closed_at,
   seguimiento_started_at,
   indagacion_due_date,
-  students(first_name, last_name, rut)
+  ${CASE_STUDENT_SELECT}
 `;
 const CONTROL_UNIFICADO_SELECT = `
   tipo,
@@ -50,6 +56,7 @@ const CONTROL_UNIFICADO_SELECT = `
 `;
 const CASE_SELECT_FULL = `
   id,
+  tenant_id,
   student_id,
   legacy_case_number,
   incident_date,
@@ -62,18 +69,13 @@ const CASE_SELECT_FULL = `
   created_at,
   updated_at,
   closed_at,
+  due_process_closed_at:closed_at,
   indagacion_start_date,
   indagacion_due_date,
   seguimiento_started_at,
-  due_process_closed_at,
   responsible,
   responsible_role,
-  final_resolution_text,
-  final_disciplinary_measure,
-  closed_by_name,
-  closed_by_role,
-  final_pdf_storage_path,
-  students(first_name, last_name, rut)
+  ${CASE_STUDENT_SELECT}
 `;
 
 /**
@@ -99,6 +101,27 @@ export async function getResponsables() {
   return unicos.filter(Boolean).sort();
 }
 function mapCaseRow(row) {
+  // Defensa adicional ante datos inconsistentes: nunca mezclar estudiante de otro tenant.
+  if (
+    row &&
+    row.tenant_id &&
+    row.students &&
+    !Array.isArray(row.students) &&
+    row.students.tenant_id &&
+    row.students.tenant_id !== row.tenant_id
+  ) {
+    logger.warn('Tenant mismatch detectado entre caso y estudiante', {
+      caseId: row.id,
+      caseTenantId: row.tenant_id,
+      studentId: row.students.id,
+      studentTenantId: row.students.tenant_id,
+    });
+    return {
+      ...row,
+      students: null,
+    };
+  }
+
   return {
     ...row,
   };
@@ -146,18 +169,7 @@ export function buildCaseUpdate(payload: Record<string, any> = {}) {
   if (payload.closed_at !== undefined)
     updates.closed_at = payload.closed_at || null;
   if (payload.due_process_closed_at !== undefined)
-    updates.due_process_closed_at = payload.due_process_closed_at || null;
-  if (payload.final_resolution_text !== undefined)
-    updates.final_resolution_text = payload.final_resolution_text || null;
-  if (payload.final_disciplinary_measure !== undefined)
-    updates.final_disciplinary_measure =
-      payload.final_disciplinary_measure || null;
-  if (payload.closed_by_name !== undefined)
-    updates.closed_by_name = payload.closed_by_name || null;
-  if (payload.closed_by_role !== undefined)
-    updates.closed_by_role = payload.closed_by_role || null;
-  if (payload.final_pdf_storage_path !== undefined)
-    updates.final_pdf_storage_path = payload.final_pdf_storage_path || null;
+    updates.closed_at = payload.due_process_closed_at || null;
 
   return updates;
 }
@@ -195,13 +207,20 @@ function mapControlPlazoRow(row) {
  * @param {string} status - 'Activo', 'Cerrado', o null para todos
  * @returns {Promise<Array>}
  */
-export async function getCases(status = null) {
+export async function getCases(
+  status = null,
+  { tenantId = null }: { tenantId?: string | null } = {},
+) {
   try {
     const { data, error } = await withRetry(() => {
       let query = supabase
         .from('cases')
         .select(CASE_SELECT_FULL)
         .order('incident_date', { ascending: false });
+
+      if (tenantId) {
+        query = query.eq('tenant_id', tenantId);
+      }
 
       if (status) {
         query = query.eq('status', status);
@@ -234,6 +253,7 @@ export async function getCasesPage({
   search = '',
   page = 1,
   pageSize = 10,
+  tenantId = null,
 } = {}) {
   try {
     const q = String(search || '').trim();
@@ -243,11 +263,19 @@ export async function getCasesPage({
     let studentIds = [];
     if (q) {
       const { data: studentsData, error: studentsError } = await withRetry(() =>
-        supabase
+        (() => {
+          let studentQuery = supabase
           .from('students')
           .select('id')
           .or(`first_name.ilike.%${q}%,last_name.ilike.%${q}%,rut.ilike.%${q}%`)
-          .limit(500),
+            .limit(500);
+
+          if (tenantId) {
+            studentQuery = studentQuery.eq('tenant_id', tenantId);
+          }
+
+          return studentQuery;
+        })(),
       );
       if (studentsError) throw studentsError;
       studentIds = (studentsData || []).map((s) => s.id).filter(Boolean);
@@ -259,6 +287,7 @@ export async function getCasesPage({
 
     if (status) query = query.eq('status', status);
     if (excludeStatus) query = query.neq('status', excludeStatus);
+    if (tenantId) query = query.eq('tenant_id', tenantId);
 
     if (q) {
       const orParts = [
@@ -290,11 +319,17 @@ export async function getCasesPage({
  * Obtener casos activos con select reducido (mejor perf en listados)
  * @returns {Promise<Array>}
  */
-export async function getActiveCasesLite() {
+export async function getActiveCasesLite(tenantId: string | null = null) {
   try {
-    const { data, error } = await withRetry(() =>
-      supabase.from('cases').select(CASE_LIST_SELECT).neq('status', 'Cerrado'),
-    );
+    const { data, error } = await withRetry(() => {
+      let query = supabase
+        .from('cases')
+        .select(CASE_LIST_SELECT)
+        .neq('status', 'Cerrado');
+
+      if (tenantId) query = query.eq('tenant_id', tenantId);
+      return query;
+    });
     if (error) throw error;
     return (data || []).map(mapCaseRow);
   } catch (error) {
@@ -308,14 +343,19 @@ export async function getActiveCasesLite() {
  * @param {Array<string>} caseIds
  * @returns {Promise<Array>}
  */
-export async function getCasesByIdsLite(caseIds = []) {
+export async function getCasesByIdsLite(
+  caseIds = [],
+  tenantId: string | null = null,
+) {
   try {
     const ids = (caseIds || []).filter(Boolean);
     if (ids.length === 0) return [];
 
-    const { data, error } = await withRetry(() =>
-      supabase.from('cases').select(CASE_LIST_SELECT).in('id', ids),
-    );
+    const { data, error } = await withRetry(() => {
+      let query = supabase.from('cases').select(CASE_LIST_SELECT).in('id', ids);
+      if (tenantId) query = query.eq('tenant_id', tenantId);
+      return query;
+    });
     if (error) throw error;
     return (data || []).map(mapCaseRow);
   } catch (error) {
@@ -329,28 +369,36 @@ export async function getCasesByIdsLite(caseIds = []) {
  * @param {string} status - valor exacto en la columna `status` de la BD
  * @returns {Promise<Array>}
  */
-export async function getCasesByStatus(status) {
+export async function getCasesByStatus(
+  status,
+  { tenantId = null }: { tenantId?: string | null } = {},
+) {
   try {
     if (!status) return [];
 
     // Select only the minimal columns required for the sidebar to improve perf
-    const { data, error } = await withRetry(() =>
-      supabase
+    const { data, error } = await withRetry(() => {
+      let query = supabase
         .from('cases')
         .select(
           `
           id,
+          tenant_id,
+          student_id,
           created_at,
           incident_date,
           status,
           course_incident,
-          students(first_name, last_name, rut)
+          ${CASE_STUDENT_SELECT}
         `,
         )
         // Use case-insensitive match to avoid issues with capitalization
         .ilike('status', status)
-        .order('incident_date', { ascending: false }),
-    );
+        .order('incident_date', { ascending: false });
+
+      if (tenantId) query = query.eq('tenant_id', tenantId);
+      return query;
+    });
 
     if (error) throw error;
     return (data || []).map(mapCaseRow);
@@ -365,25 +413,32 @@ export async function getCasesByStatus(status) {
  * (más robusto que depender solo del string `status`).
  * Trae casos donde `seguimiento_started_at` IS NOT NULL y status != 'Cerrado'
  */
-export async function getCasesEnSeguimiento() {
+export async function getCasesEnSeguimiento(
+  { tenantId = null }: { tenantId?: string | null } = {},
+) {
   try {
-    const { data, error } = await withRetry(() =>
-      supabase
+    const { data, error } = await withRetry(() => {
+      let query = supabase
         .from('cases')
         .select(
           `
           id,
+          tenant_id,
+          student_id,
           created_at,
           incident_date,
           status,
           course_incident,
-          students(first_name, last_name, rut)
+          ${CASE_STUDENT_SELECT}
         `,
         )
         .not('seguimiento_started_at', 'is', null)
         .neq('status', 'Cerrado')
-        .order('incident_date', { ascending: false }),
-    );
+        .order('incident_date', { ascending: false });
+
+      if (tenantId) query = query.eq('tenant_id', tenantId);
+      return query;
+    });
 
     if (error) throw error;
     return (data || []).map(mapCaseRow);
@@ -398,15 +453,20 @@ export async function getCasesEnSeguimiento() {
  * @param {string} id - ID del caso
  * @returns {Promise<Object>}
  */
-export async function getCase(id) {
+export async function getCase(
+  id,
+  { tenantId = null }: { tenantId?: string | null } = {},
+) {
   try {
     if (!id) {
       throw new Error('Se requiere id de caso');
     }
 
-    const { data, error } = await withRetry(() =>
-      supabase.from('cases').select(CASE_SELECT_FULL).eq('id', id).single(),
-    );
+    const { data, error } = await withRetry(() => {
+      let query = supabase.from('cases').select(CASE_SELECT_FULL).eq('id', id);
+      if (tenantId) query = query.eq('tenant_id', tenantId);
+      return query.single();
+    });
 
     if (error) throw error;
     if (!data) return null;
@@ -1125,12 +1185,18 @@ export async function getConductasByType(tipo, { activeOnly = true } = {}) {
 }
 
 // --- Seguimientos Full Integration ---
-export async function getCaseDetails(caseId) {
-  const { data, error } = await supabase
+export async function getCaseDetails(
+  caseId,
+  { tenantId = null }: { tenantId?: string | null } = {},
+) {
+  let query = supabase
     .from('cases')
-    .select(`*, students(rut,first_name,last_name,level,course)`)
-    .eq('id', caseId)
-    .single();
+    .select(`*, ${CASE_STUDENT_SELECT_FULL}`)
+    .eq('id', caseId);
+
+  if (tenantId) query = query.eq('tenant_id', tenantId);
+
+  const { data, error } = await query.single();
   if (error) throw error;
   return mapCaseRow(data);
 }

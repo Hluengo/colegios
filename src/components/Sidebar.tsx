@@ -6,6 +6,10 @@ import {
   CheckCircle,
   Archive,
   BarChart3,
+  Settings,
+  UserCircle2,
+  LogOut,
+  Pencil,
   ChevronLeft,
   ChevronRight,
   X,
@@ -13,12 +17,14 @@ import {
 } from 'lucide-react';
 
 import { BRANDING } from '../config/branding';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { supabase } from '../api/supabaseClient';
 import { getCasesEnSeguimiento } from '../api/db';
 import { onDataUpdated } from '../utils/refreshBus';
 import { logger } from '../utils/logger';
 import { getStudentName } from '../utils/studentName';
 import { useAsync } from '../hooks/useAsync';
+import { useTenant } from '../context/TenantContext';
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -29,6 +35,8 @@ export default function Sidebar({
   mobileOpen = false,
   onClose = () => {},
 }: SidebarProps) {
+  const { tenant, user, isTenantAdmin, refetch } = useTenant();
+  const tenantId = tenant?.id || null;
   const [collapsed, setCollapsed] = useState(() => {
     try {
       const v = localStorage.getItem('sidebar-collapsed');
@@ -42,7 +50,14 @@ export default function Sidebar({
     }
   });
   const [expandedSeguimientos, setExpandedSeguimientos] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [newName, setNewName] = useState('');
   // Sidebar items are derived from backend data via useMemo
+
+  useEffect(() => {
+    setNewName(user?.full_name || '');
+  }, [user?.full_name]);
 
   useEffect(() => {
     try {
@@ -55,8 +70,8 @@ export default function Sidebar({
   // Use reusable async hook to load cases and support external refresh events
   const [refreshKey, setRefreshKey] = useState(0);
   const { data: enSeguimiento } = useAsync(
-    () => getCasesEnSeguimiento(),
-    [refreshKey],
+    () => (tenantId ? getCasesEnSeguimiento({ tenantId }) : []),
+    [refreshKey, tenantId],
   );
 
   // Subscribe to external refresh events and bump the refresh key
@@ -88,6 +103,65 @@ export default function Sidebar({
 
   const inactiveClass =
     'text-slate-600 hover:bg-brand-50/70 hover:text-brand-700 hover:ring-1 hover:ring-brand-200';
+  const hasConfiguredTenantName = Boolean(tenant?.name?.trim());
+  const shouldShowTenantSlug = Boolean(tenant?.slug?.trim()) && !hasConfiguredTenantName;
+
+  const userInitials = useMemo(() => {
+    const name = (user?.full_name || user?.email || 'Usuario').trim();
+    const parts = name.split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return 'U';
+    if (parts.length === 1) return parts[0].slice(0, 1).toUpperCase();
+    return `${parts[0].slice(0, 1)}${parts[1].slice(0, 1)}`.toUpperCase();
+  }, [user?.full_name, user?.email]);
+
+  const saveProfileName = async () => {
+    try {
+      if (!user?.id) return;
+      await supabase
+        .from('tenant_profiles')
+        .update({ full_name: newName.trim() || null })
+        .eq('id', user.id);
+      await refetch();
+      setEditingName(false);
+      setUserMenuOpen(false);
+    } catch (e) {
+      logger.error('Error actualizando nombre de usuario:', e);
+    }
+  };
+
+  const signOut = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      logger.error('Error cerrando sesión:', e);
+    }
+  };
+
+  useEffect(() => {
+    const onPointerDown = (event: MouseEvent) => {
+      if (!userMenuOpen) return;
+      const target = event.target;
+      if (target instanceof Element && target.closest('[data-user-menu-root="true"]')) {
+        return;
+      }
+      setUserMenuOpen(false);
+      setEditingName(false);
+    };
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setUserMenuOpen(false);
+        setEditingName(false);
+      }
+    };
+
+    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [userMenuOpen]);
 
   return (
     <>
@@ -107,18 +181,20 @@ export default function Sidebar({
             <div className="relative">
               <div className="absolute inset-0 bg-accent-500 blur-md opacity-10 rounded-full"></div>
               <img
-                src={BRANDING.logoApp}
-                alt={BRANDING.appName}
+                src={tenant?.logo_url || BRANDING.logoApp}
+                alt={tenant?.name || BRANDING.appName}
                 className="w-10 h-10 relative z-10 object-contain"
               />
             </div>
             <div>
               <h1 className="text-base font-semibold text-slate-800 tracking-tight leading-none">
-                {BRANDING.appName}
+                {tenant?.name || BRANDING.appName}
               </h1>
-              <p className="text-[9px] font-bold text-brand-500 tracking-widest uppercase mt-0.5">
-                {BRANDING.schoolName}
-              </p>
+              {shouldShowTenantSlug && (
+                <p className="text-[9px] font-bold text-brand-500 tracking-widest uppercase mt-0.5">
+                  {tenant.slug}
+                </p>
+              )}
             </div>
           </div>
 
@@ -302,24 +378,101 @@ export default function Sidebar({
                 </span>
               )}
             </NavLink>
+            {isTenantAdmin && (
+              <NavLink
+                to="/admin"
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-4 py-3 -mx-1 rounded-xl text-sm font-medium transition-all duration-300 ${
+                    isActive
+                      ? 'bg-brand-100 text-brand-800 ring-1 ring-brand-200'
+                      : 'text-slate-500 hover:bg-brand-50 hover:text-brand-700'
+                  }`
+                }
+              >
+                <Settings size={18} />
+                <span
+                  className={`flex-1 transition-all duration-300 ${collapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100'}`}
+                >
+                  Administración
+                </span>
+              </NavLink>
+            )}
           </div>
         </nav>
 
         {/* User Footer */}
-        <div className="p-4 mt-auto">
-          <div
-            className={`p-3 rounded-2xl glass-card flex items-center gap-3 transition-opacity duration-300 ${collapsed ? 'opacity-0' : 'opacity-100'}`}
+        <div className="p-4 mt-auto relative" data-user-menu-root="true">
+          <button
+            type="button"
+            onClick={() => setUserMenuOpen((v) => !v)}
+            className={`w-full p-3 rounded-2xl glass-card flex items-center gap-3 text-left transition-all duration-300 ${collapsed ? 'justify-center px-2' : ''}`}
           >
             <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-500">
-              U
+              {userInitials}
             </div>
-            <div className="overflow-hidden">
-              <p className="text-xs font-bold text-slate-800 truncate">
-                Usuario Sistema
-              </p>
-              <p className="text-[10px] text-slate-500 truncate">Convivencia</p>
+            {!collapsed && (
+              <div className="overflow-hidden">
+                <p className="text-xs font-bold text-slate-800 truncate">
+                  {user?.full_name || 'Usuario'}
+                </p>
+                <p className="text-[10px] text-slate-500 truncate">{user?.role || 'usuario'}</p>
+              </div>
+            )}
+          </button>
+
+          {userMenuOpen && (
+            <div className="absolute bottom-[72px] left-4 right-4 rounded-xl border border-slate-200 bg-white p-2 shadow-lg z-20">
+              {!editingName ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setEditingName(true)}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                  >
+                    <Pencil size={14} />
+                    Cambiar nombre
+                  </button>
+                  <button
+                    type="button"
+                    onClick={signOut}
+                    className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-rose-700 hover:bg-rose-50"
+                  >
+                    <LogOut size={14} />
+                    Cerrar sesión
+                  </button>
+                </>
+              ) : (
+                <div className="space-y-2 p-1">
+                  <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
+                    <UserCircle2 size={14} />
+                    Nombre de perfil
+                  </div>
+                  <input
+                    className="input-field text-sm"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    placeholder="Tu nombre"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={saveProfileName}
+                      className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs text-white"
+                    >
+                      Guardar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingName(false)}
+                      className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
+          )}
         </div>
       </aside>
 
@@ -336,19 +489,21 @@ export default function Sidebar({
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <div className="absolute inset-0 bg-accent-500 blur-md opacity-10 rounded-full"></div>
-                  <img
-                    src={BRANDING.logoApp}
-                    alt={BRANDING.appName}
+              <img
+                    src={tenant?.logo_url || BRANDING.logoApp}
+                    alt={tenant?.name || BRANDING.appName}
                     className="w-8 h-8 relative z-10 object-contain"
                   />
                 </div>
                 <div>
                   <h1 className="text-sm font-semibold text-slate-800 tracking-tight leading-none">
-                    {BRANDING.appName}
+                    {tenant?.name || BRANDING.appName}
                   </h1>
-                  <p className="text-[8px] font-bold text-slate-600 tracking-widest uppercase mt-0.5">
-                    {BRANDING.schoolName}
-                  </p>
+                  {shouldShowTenantSlug && (
+                    <p className="text-[8px] font-bold text-slate-600 tracking-widest uppercase mt-0.5">
+                      {tenant?.slug}
+                    </p>
+                  )}
                 </div>
               </div>
               <button
@@ -474,23 +629,82 @@ export default function Sidebar({
                     LIVE
                   </span>
                 </NavLink>
+                {isTenantAdmin && (
+                  <NavLink
+                    to="/admin"
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all ${
+                        isActive
+                          ? 'bg-brand-100 text-brand-800 ring-1 ring-brand-200'
+                          : 'text-slate-500 hover:bg-brand-50 hover:text-brand-700'
+                      }`
+                    }
+                    onClick={onClose}
+                  >
+                    <Settings size={18} />
+                    <span className="flex-1">Administración</span>
+                  </NavLink>
+                )}
               </div>
             </nav>
 
             {/* User Footer Mobile */}
             <div className="p-4 mt-auto border-t border-slate-50 bg-slate-50/30">
-              <div className="flex items-center gap-3 p-2">
+              <div data-user-menu-root="true">
+              <button
+                type="button"
+                onClick={() => setUserMenuOpen((v) => !v)}
+                className="flex w-full items-center gap-3 p-2 rounded-xl hover:bg-slate-100"
+              >
                 <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-500">
-                  U
+                  {userInitials}
                 </div>
                 <div>
                   <p className="text-[11px] font-bold text-slate-700 leading-none">
-                    Usuario Sistema
+                    {user?.full_name || 'Usuario'}
                   </p>
                   <p className="text-[9px] text-slate-500 mt-1">
-                    Convivencia Escolar
+                    {user?.role || 'usuario'}
                   </p>
                 </div>
+              </button>
+              {userMenuOpen && (
+                <div className="mt-2 rounded-xl border border-slate-200 bg-white p-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditingName((v) => !v)}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                  >
+                    <Pencil size={14} />
+                    Cambiar nombre
+                  </button>
+                  {editingName && (
+                    <div className="mt-2 space-y-2 px-1">
+                      <input
+                        className="input-field text-sm"
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        placeholder="Tu nombre"
+                      />
+                      <button
+                        type="button"
+                        onClick={saveProfileName}
+                        className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs text-white"
+                      >
+                        Guardar
+                      </button>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={signOut}
+                    className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-rose-700 hover:bg-rose-50"
+                  >
+                    <LogOut size={14} />
+                    Cerrar sesión
+                  </button>
+                </div>
+              )}
               </div>
             </div>
           </aside>

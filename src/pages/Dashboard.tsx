@@ -34,6 +34,7 @@ import useCachedAsync from '../hooks/useCachedAsync';
 import { clearCache } from '../utils/queryCache';
 import InlineError from '../components/InlineError';
 import { getCaseStatus } from '../utils/caseStatus';
+import { useTenant } from '../context/TenantContext';
 
 const COLORS = [
   '#dc2626',
@@ -71,6 +72,8 @@ function DashboardSkeleton() {
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { tenant } = useTenant();
+  const tenantId = tenant?.id || '';
 
   /* =========================
      DATA
@@ -102,18 +105,23 @@ export default function Dashboard() {
     data: allCases,
     loading: loadingCases,
     error: errorCases,
-  } = useCachedAsync('cases:all', () => getCases(), [refreshKey], {
-    ttlMs: 30000,
-  });
+  } = useCachedAsync(
+    `cases:all:${tenantId}`,
+    () => getCases(null, { tenantId: tenantId || null }),
+    [refreshKey, tenantId],
+    {
+      ttlMs: 30000,
+    },
+  );
 
   const {
     data: plazos,
     loading: loadingPlazos,
     error: errorPlazos,
   } = useCachedAsync(
-    'control_alertas',
+    `control_alertas:${tenantId}`,
     () => getAllControlAlertas(),
-    [refreshKey],
+    [refreshKey, tenantId],
     {
       ttlMs: 30000,
     },
@@ -153,12 +161,12 @@ export default function Dashboard() {
 
   useEffect(() => {
     const off = onDataUpdated(() => {
-      clearCache('cases:all');
-      clearCache('control_alertas');
+      clearCache(`cases:all:${tenantId}`);
+      clearCache(`control_alertas:${tenantId}`);
       setRefreshKey((k) => k + 1);
     });
     return () => off();
-  }, []);
+  }, [tenantId]);
 
   if (loading) return <DashboardSkeleton />;
   if (error)
@@ -167,8 +175,8 @@ export default function Dashboard() {
         title="Error al cargar dashboard"
         message={error?.message || 'Fallo de red'}
         onRetry={() => {
-          clearCache('cases:all');
-          clearCache('control_alertas');
+          clearCache(`cases:all:${tenantId}`);
+          clearCache(`control_alertas:${tenantId}`);
           setRefreshKey((k) => k + 1);
         }}
       />

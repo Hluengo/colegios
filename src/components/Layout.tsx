@@ -8,6 +8,9 @@ import { useMediaQuery } from '../hooks/useMediaQuery';
 import { supabase } from '../api/supabaseClient';
 import { emitDataUpdated } from '../utils/refreshBus';
 import { logger } from '../utils/logger';
+import { useTenantTheme } from '../hooks/useTenantTheme';
+import { useTenant } from '../context/TenantContext';
+import { clearAllCache } from '../utils/queryCache';
 
 export default function Layout() {
   const location = useLocation();
@@ -19,6 +22,11 @@ export default function Layout() {
   const { push } = useToast();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const isMobile = useMediaQuery('(max-width: 640px)');
+  
+  // Aplicar theming del tenant
+  useTenantTheme();
+  const { tenant, isLoading: tenantLoading } = useTenant();
+  const prevTenantIdRef = useRef<string | null>(null);
 
   // 🔹 Título dinámico según ruta
   function getTitle() {
@@ -26,6 +34,7 @@ export default function Layout() {
     if (location.pathname.startsWith('/seguimientos')) return 'Seguimientos';
     if (location.pathname.startsWith('/casos-cerrados'))
       return 'Casos Cerrados';
+    if (location.pathname.startsWith('/admin')) return 'Administración';
     if (location.pathname.startsWith('/estudiantes')) return 'Estudiantes';
     if (location.pathname === '/') return 'Inicio';
     return '';
@@ -145,6 +154,36 @@ export default function Layout() {
     }
     return undefined;
   }, [isMobile]);
+
+  useEffect(() => {
+    if (tenantLoading) return;
+
+    const currentTenantId = tenant?.id || null;
+    const prevTenantId = prevTenantIdRef.current;
+
+    // Cuando cambia el tenant activo, limpiar cache en memoria para evitar flash de datos cruzados.
+    if (prevTenantId && currentTenantId && prevTenantId !== currentTenantId) {
+      clearAllCache();
+      emitDataUpdated();
+    }
+
+    prevTenantIdRef.current = currentTenantId;
+  }, [tenantLoading, tenant?.id]);
+
+  if (tenantLoading || !tenant) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-slate-50">
+        <div className="w-full max-w-2xl p-6 animate-pulse">
+          <div className="h-8 bg-slate-200 rounded w-1/3 mb-6" />
+          <div className="space-y-3">
+            <div className="h-20 bg-slate-200 rounded-2xl" />
+            <div className="h-20 bg-slate-200 rounded-2xl" />
+            <div className="h-20 bg-slate-200 rounded-2xl" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

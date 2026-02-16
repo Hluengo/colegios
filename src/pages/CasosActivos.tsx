@@ -20,9 +20,12 @@ import { parseLocalDate } from '../utils/dateUtils';
 import InlineError from '../components/InlineError';
 import usePersistedState from '../hooks/usePersistedState';
 import { getCaseStatus, getCaseStatusLabel } from '../utils/caseStatus';
+import { useTenant } from '../context/TenantContext';
 
 export default function CasosActivos() {
   const navigate = useNavigate();
+  const { tenant } = useTenant();
+  const tenantId = tenant?.id || '';
   const [searchParams, setSearchParams] = useSearchParams();
   const [casos, setCasos] = useState([]);
   const [selectedCaso, setSelectedCaso] = useState(null);
@@ -59,7 +62,7 @@ export default function CasosActivos() {
     loading: loadingCases,
     error: errorCases,
   } = useCachedAsync(
-    `cases:activos:${page}:${pageSize}:${estadoFiltro}:${search || ''}`,
+    `cases:activos:${tenantId}:${page}:${pageSize}:${estadoFiltro}:${search || ''}`,
     () =>
       getCasesPage({
         excludeStatus: 'Cerrado',
@@ -67,8 +70,9 @@ export default function CasosActivos() {
         search,
         page,
         pageSize,
+        tenantId: tenantId || null,
       }),
-    [refreshKey, page, pageSize, estadoFiltro, search],
+    [refreshKey, tenantId, page, pageSize, estadoFiltro, search],
     {
       ttlMs: 30000,
     },
@@ -146,13 +150,13 @@ export default function CasosActivos() {
     const off = onDataUpdated(() => {
       logger.debug('🔄 Refrescando casos activos...');
       clearCache(
-        `cases:activos:${page}:${pageSize}:${estadoFiltro}:${search || ''}`,
+        `cases:activos:${tenantId}:${page}:${pageSize}:${estadoFiltro}:${search || ''}`,
       );
       setRefreshKey((k) => k + 1);
     });
 
     return () => off();
-  }, []);
+  }, [tenantId, page, pageSize, estadoFiltro, search]);
 
   function businessDaysBetween(startDate, endDate) {
     if (!startDate || !endDate) return null;

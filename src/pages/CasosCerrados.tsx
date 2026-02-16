@@ -12,8 +12,11 @@ import { clearCache } from '../utils/queryCache';
 import { onDataUpdated } from '../utils/refreshBus';
 import InlineError from '../components/InlineError';
 import usePersistedState from '../hooks/usePersistedState';
+import { useTenant } from '../context/TenantContext';
 
 export default function CasosCerrados() {
+  const { tenant } = useTenant();
+  const tenantId = tenant?.id || '';
   const [casos, setCasos] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [totalCasos, setTotalCasos] = useState(0);
@@ -31,15 +34,16 @@ export default function CasosCerrados() {
     loading,
     error,
   } = useCachedAsync(
-    `cases:cerrado:${page}:${pageSize}:${search || ''}`,
+    `cases:cerrado:${tenantId}:${page}:${pageSize}:${search || ''}`,
     () =>
       getCasesPage({
         status: 'Cerrado',
         search,
         page,
         pageSize,
+        tenantId: tenantId || null,
       }),
-    [refreshKey, page, pageSize, search],
+    [refreshKey, tenantId, page, pageSize, search],
     {
       ttlMs: 30000,
     },
@@ -58,11 +62,11 @@ export default function CasosCerrados() {
 
   useEffect(() => {
     const off = onDataUpdated(() => {
-      clearCache(`cases:cerrado:${page}:${pageSize}:${search || ''}`);
+      clearCache(`cases:cerrado:${tenantId}:${page}:${pageSize}:${search || ''}`);
       setRefreshKey((k) => k + 1);
     });
     return () => off();
-  }, []);
+  }, [tenantId, page, pageSize, search]);
 
   const totalPages = Math.max(1, Math.ceil(totalCasos / pageSize));
   const currentPage = Math.min(page, totalPages);
