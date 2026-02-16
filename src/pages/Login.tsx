@@ -100,26 +100,9 @@ export default function Login({ onLoginSuccess }: LoginProps) {
         if (signUpError) throw signUpError
 
         if (data.user) {
-          // Crear perfil automáticamente
-          const { data: tenant } = await supabase
-            .from('tenants')
-            .select('id')
-            .eq('slug', 'demo')
-            .single()
-
-          if (tenant) {
-            await supabase
-              .from('tenant_profiles')
-              .insert({
-                id: data.user.id,
-                tenant_id: tenant.id,
-                email: email,
-                full_name: '',
-                role: 'user'
-              })
-          }
-
-          setMessage(' Revisa tu email para confirmar tu cuenta')
+          // El perfil tenant_profiles debe crearse en backend (auth hook / service role),
+          // nunca desde el cliente para mantener aislamiento multi-tenant por RLS.
+          setMessage('Revisa tu email para confirmar tu cuenta')
         }
       } else {
         // Inicio de sesión
