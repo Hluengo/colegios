@@ -2,6 +2,7 @@ import { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
+import { TenantProvider } from './context/TenantContext';
 
 // Páginas en lazy loading para dividir chunks
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -74,78 +75,80 @@ function RouteErrorFallback({ resetError = () => {} }: { resetError?: () => void
 export default function App() {
   return (
     <ErrorBoundary>
-      <BrowserRouter>
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route element={<Layout />}>
-              <Route
-                path="/"
-                element={
-                  <ErrorBoundary>
-                    <Dashboard />
-                  </ErrorBoundary>
-                }
-              />
-              <Route
-                path="/casos-activos"
-                element={
-                  <ErrorBoundary>
-                    <CasosActivos />
-                  </ErrorBoundary>
-                }
-              />
-              <Route
-                path="/casos-cerrados"
-                element={
-                  <ErrorBoundary>
-                    <CasosCerrados />
-                  </ErrorBoundary>
-                }
-              />
-              <Route
-                path="/seguimientos"
-                element={
-                  <ErrorBoundary>
-                    <SeguimientoWrapper />
-                  </ErrorBoundary>
-                }
-              />
-              <Route
-                path="/seguimientos/:caseId"
-                element={
-                  <ErrorBoundary>
-                    <SeguimientoPage />
-                  </ErrorBoundary>
-                }
-              />
-              <Route
-                path="/cierre-caso/:caseId"
-                element={
-                  <ErrorBoundary>
-                    <CierreCasoPage />
-                  </ErrorBoundary>
-                }
-              />
-              <Route
-                path="/estadisticas"
-                element={
-                  <ErrorBoundary>
-                    <Estadisticas />
-                  </ErrorBoundary>
-                }
-              />
-              <Route
-                path="/alertas"
-                element={
-                  <ErrorBoundary>
-                    <AlertasPlazos />
-                  </ErrorBoundary>
-                }
-              />
-            </Route>
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
+      <TenantProvider>
+        <BrowserRouter>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route element={<Layout />}>
+                <Route
+                  path="/"
+                  element={
+                    <ErrorBoundary>
+                      <Dashboard />
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/casos-activos"
+                  element={
+                    <ErrorBoundary>
+                      <CasosActivos />
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/casos-cerrados"
+                  element={
+                    <ErrorBoundary>
+                      <CasosCerrados />
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/seguimientos"
+                  element={
+                    <ErrorBoundary>
+                      <SeguimientoWrapper />
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/seguimientos/:caseId"
+                  element={
+                    <ErrorBoundary>
+                      <SeguimientoPage />
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/cierre-caso/:caseId"
+                  element={
+                    <ErrorBoundary>
+                      <CierreCasoPage />
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/estadisticas"
+                  element={
+                    <ErrorBoundary>
+                      <Estadisticas />
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/alertas"
+                  element={
+                    <ErrorBoundary>
+                      <AlertasPlazos />
+                    </ErrorBoundary>
+                  }
+                />
+              </Route>
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </TenantProvider>
     </ErrorBoundary>
   );
 }
