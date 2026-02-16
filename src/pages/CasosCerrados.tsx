@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Eye, FileText } from 'lucide-react';
 import { getCaseFollowups, getCasesPage } from '../api/db';
@@ -7,35 +8,36 @@ import { formatDate } from '../utils/formatDate';
 import { tipBadgeClasses } from '../utils/tipColors';
 import { useToast } from '../hooks/useToast';
 import { logger } from '../utils/logger';
-import useCachedAsync from '../hooks/useCachedAsync';
-import { clearCache } from '../utils/queryCache';
 import { onDataUpdated } from '../utils/refreshBus';
 import InlineError from '../components/InlineError';
 import usePersistedState from '../hooks/usePersistedState';
 import { useTenant } from '../context/TenantContext';
+import { queryKeys } from '../lib/queryClient';
 
 export default function CasosCerrados() {
+  const queryClient = useQueryClient();
   const { tenant } = useTenant();
   const tenantId = tenant?.id || '';
-  const [casos, setCasos] = useState([]);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [totalCasos, setTotalCasos] = useState(0);
-  const [search, setSearch] = usePersistedState('casosCerrados.search', '');
+  const [search, setSearch] = usePersistedState(
+    `casosCerrados:${tenantId}:search`,
+    '',
+  );
   const [pageSize, setPageSize] = usePersistedState(
-    'casosCerrados.pageSize',
+    `casosCerrados:${tenantId}:pageSize`,
     10,
   );
-  const [page, setPage] = usePersistedState('casosCerrados.page', 1);
+  const [page, setPage] = usePersistedState(`casosCerrados:${tenantId}:page`, 1);
   const navigate = useNavigate();
   const { push } = useToast();
 
   const {
     data: closedCases,
-    loading,
+    isLoading: loading,
     error,
-  } = useCachedAsync(
-    `cases:cerrado:${tenantId}:${page}:${pageSize}:${search || ''}`,
-    () =>
+    refetch,
+  } = useQuery({
+    queryKey: queryKeys.cases.cerrados(tenantId, page, pageSize, search || ''),
+    queryFn: () =>
       getCasesPage({
         status: 'Cerrado',
         search,
@@ -43,30 +45,20 @@ export default function CasosCerrados() {
         pageSize,
         tenantId: tenantId || null,
       }),
-    [refreshKey, tenantId, page, pageSize, search],
-    {
-      ttlMs: 30000,
-    },
-  );
+    enabled: Boolean(tenantId),
+  });
 
-  useEffect(() => {
-    if (!closedCases) return;
-    setCasos(closedCases.rows || []);
-    setTotalCasos(closedCases.total || 0);
-  }, [closedCases]);
-
-  useEffect(() => {
-    if (!error) return;
-    setCasos([]);
-  }, [error]);
+  const casos = useMemo(() => closedCases?.rows || [], [closedCases]);
+  const totalCasos = closedCases?.total || 0;
 
   useEffect(() => {
     const off = onDataUpdated(() => {
-      clearCache(`cases:cerrado:${tenantId}:${page}:${pageSize}:${search || ''}`);
-      setRefreshKey((k) => k + 1);
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.cases.cerrados(tenantId, page, pageSize, search || ''),
+      });
     });
     return () => off();
-  }, [tenantId, page, pageSize, search]);
+  }, [tenantId, page, pageSize, search, queryClient]);
 
   const totalPages = Math.max(1, Math.ceil(totalCasos / pageSize));
   const currentPage = Math.min(page, totalPages);
@@ -82,8 +74,7 @@ export default function CasosCerrados() {
         title="Error al cargar casos cerrados"
         message={error?.message || String(error)}
         onRetry={() => {
-          clearCache('cases:cerrado');
-          setRefreshKey((k) => k + 1);
+          refetch();
         }}
       />
     );

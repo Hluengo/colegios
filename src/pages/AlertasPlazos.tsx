@@ -1,15 +1,16 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getAllControlAlertas } from '../api/db';
 import { formatDate } from '../utils/formatDate';
 import { getStudentName } from '../utils/studentName';
 import { AlertTriangle, Clock, CheckCircle, FileText } from 'lucide-react';
 import { onDataUpdated } from '../utils/refreshBus';
 import { diffDays, haceXDiasLabel } from '../utils/dateUtils';
-import useCachedAsync from '../hooks/useCachedAsync';
-import { clearCache } from '../utils/queryCache';
 import InlineError from '../components/InlineError';
+import { queryKeys } from '../lib/queryClient';
+import { useTenant } from '../context/TenantContext';
 
 /* =========================
    Helpers de temporalidad (robustos a timezone)
@@ -24,27 +25,29 @@ function fuenteActividad({ lastAction, seguimiento }) {
 
 export default function AlertasPlazos() {
   const navigate = useNavigate();
-
-  const [refreshKey, setRefreshKey] = useState(0);
+  const queryClient = useQueryClient();
+  const { tenant } = useTenant();
+  const tenantId = tenant?.id || '';
 
   const {
     data: seguimientos,
-    loading,
+    isLoading: loading,
     error,
-  } = useCachedAsync(
-    'control_alertas',
-    () => getAllControlAlertas(),
-    [refreshKey],
-    { ttlMs: 30000 },
-  );
+    refetch,
+  } = useQuery({
+    queryKey: queryKeys.alerts.plazos(tenantId),
+    queryFn: () => getAllControlAlertas(),
+    enabled: Boolean(tenantId),
+  });
 
   useEffect(() => {
     const off = onDataUpdated(() => {
-      clearCache('control_alertas');
-      setRefreshKey((k) => k + 1);
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.alerts.plazos(tenantId),
+      });
     });
     return () => off();
-  }, []);
+  }, [tenantId, queryClient]);
 
   /* =========================
      CLASIFICACIÓN
@@ -98,8 +101,7 @@ export default function AlertasPlazos() {
         title="Error al cargar alertas"
         message={error?.message || String(error)}
         onRetry={() => {
-          clearCache('control_alertas');
-          setRefreshKey((k) => k + 1);
+          refetch();
         }}
       />
     );

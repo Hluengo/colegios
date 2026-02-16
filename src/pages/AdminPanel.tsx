@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
 import { useToast } from '../hooks/useToast';
+import { Button, Input, Select } from '../components/ui';
 import {
   applyCollegeCatalogs,
   createStudent,
@@ -580,7 +581,7 @@ export default function AdminPanel() {
   const mediaCount = students.filter((s) => /media|i medio|ii medio|iii medio|iv medio|1 medio|2 medio|3 medio|4 medio/i.test(s.level || s.course || '')).length;
   const pendingBrandingFields = [branding.name, branding.email, branding.phone, branding.address].filter((value) => !value.trim()).length;
   const brandingFieldClass = (value: string) =>
-    `input-field transition-colors ${value.trim() ? 'border-emerald-200 bg-emerald-50/40' : 'border-amber-300 bg-amber-50'}`;
+    `input transition-colors ${value.trim() ? 'border-emerald-200 bg-emerald-50/40' : 'border-amber-300 bg-amber-50'}`;
 
   if (!isTenantAdmin) return <div className="p-6 text-red-700">No autorizado</div>;
 
@@ -613,7 +614,9 @@ export default function AdminPanel() {
                 <h1 className="text-xl font-semibold text-slate-900">{tenant?.name || 'Administración'}</h1>
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={load} className="btn-secondary inline-flex items-center gap-2 px-3 py-2 text-sm"><RefreshCw size={14} />Recargar</button>
+                <Button onClick={load} variant="secondary" size="sm" leftIcon={<RefreshCw size={14} />}>
+                  Recargar
+                </Button>
                 <span className="rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-700">{user?.email}</span>
               </div>
             </div>
@@ -630,13 +633,15 @@ export default function AdminPanel() {
             <div className="space-y-4">
               <div className="glass-panel p-5">
                 <div className="grid grid-cols-1 gap-2 md:grid-cols-5">
-                  <input className="input-field" placeholder="Nombres" value={newStudent.first_name} onChange={(e) => setNewStudent((s) => ({ ...s, first_name: e.target.value }))} />
-                  <input className="input-field" placeholder="Apellidos" value={newStudent.last_name} onChange={(e) => setNewStudent((s) => ({ ...s, last_name: e.target.value }))} />
-                  <input className="input-field" placeholder="RUT" value={newStudent.rut} onChange={(e) => setNewStudent((s) => ({ ...s, rut: e.target.value }))} />
-                  <input className="input-field" placeholder="Nivel" value={newStudent.level} onChange={(e) => setNewStudent((s) => ({ ...s, level: e.target.value }))} />
-                  <input className="input-field" placeholder="Curso" value={newStudent.course} onChange={(e) => setNewStudent((s) => ({ ...s, course: e.target.value }))} />
+                  <Input placeholder="Nombres" value={newStudent.first_name} onChange={(e) => setNewStudent((s) => ({ ...s, first_name: e.target.value }))} />
+                  <Input placeholder="Apellidos" value={newStudent.last_name} onChange={(e) => setNewStudent((s) => ({ ...s, last_name: e.target.value }))} />
+                  <Input placeholder="RUT" value={newStudent.rut} onChange={(e) => setNewStudent((s) => ({ ...s, rut: e.target.value }))} />
+                  <Input placeholder="Nivel" value={newStudent.level} onChange={(e) => setNewStudent((s) => ({ ...s, level: e.target.value }))} />
+                  <Input placeholder="Curso" value={newStudent.course} onChange={(e) => setNewStudent((s) => ({ ...s, course: e.target.value }))} />
                 </div>
-                <button className="btn-primary mt-3 inline-flex items-center gap-2 px-4 py-2 text-sm" onClick={() => run('Estudiantes', async () => { if (!tenantId) return; await createStudent(tenantId, newStudent); setNewStudent({ first_name: '', last_name: '', rut: '', level: '', course: '' }); await load(); }, 'Estudiante creado')}><Plus size={14} />Nuevo alumno</button>
+                <Button className="mt-3" size="sm" leftIcon={<Plus size={14} />} onClick={() => run('Estudiantes', async () => { if (!tenantId) return; await createStudent(tenantId, newStudent); setNewStudent({ first_name: '', last_name: '', rut: '', level: '', course: '' }); await load(); }, 'Estudiante creado')}>
+                  Nuevo alumno
+                </Button>
                 </div>
 
                 {/* Importación masiva CSV */}
@@ -733,14 +738,19 @@ export default function AdminPanel() {
                 <div className="mb-3 flex flex-wrap gap-2">
                   <label className="relative">
                     <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input className="h-10 rounded-lg border border-slate-200 pl-9 pr-3 text-sm" placeholder="Buscar alumno" value={search} onChange={(e) => setSearch(e.target.value)} />
+                    <Input className="h-10 pl-9 pr-3 text-sm" placeholder="Buscar alumno" value={search} onChange={(e) => setSearch(e.target.value)} />
                   </label>
                   <label className="relative">
                     <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <select className="h-10 rounded-lg border border-slate-200 pl-9 pr-3 text-sm" value={courseFilter} onChange={(e) => setCourseFilter(e.target.value)}>
-                      <option value="all">Todos los cursos</option>
-                      {courses.map((c) => <option key={c} value={c}>{c}</option>)}
-                    </select>
+                    <Select
+                      className="h-10 pl-9 pr-3 text-sm"
+                      value={courseFilter}
+                      onChange={(e) => setCourseFilter(e.target.value)}
+                      options={[
+                        { value: 'all', label: 'Todos los cursos' },
+                        ...courses.map((c) => ({ value: c, label: c })),
+                      ]}
+                    />
                   </label>
                 </div>
 
@@ -762,12 +772,12 @@ export default function AdminPanel() {
                         return (
                           <tr key={s.id} className="border-t border-slate-200 hover:bg-slate-50">
                             <td className="px-4 py-3">
-                              <input className="input-field mb-1" value={row.first_name || ''} disabled={!isEditing} onChange={(e) => setEditing((m) => ({ ...m, [s.id]: { ...row, first_name: e.target.value } }))} />
-                              <input className="input-field" value={row.last_name || ''} disabled={!isEditing} onChange={(e) => setEditing((m) => ({ ...m, [s.id]: { ...row, last_name: e.target.value } }))} />
+                              <input className="input mb-1" value={row.first_name || ''} disabled={!isEditing} onChange={(e) => setEditing((m) => ({ ...m, [s.id]: { ...row, first_name: e.target.value } }))} />
+                              <input className="input" value={row.last_name || ''} disabled={!isEditing} onChange={(e) => setEditing((m) => ({ ...m, [s.id]: { ...row, last_name: e.target.value } }))} />
                             </td>
-                            <td className="px-4 py-3"><input className="input-field" value={row.rut || ''} disabled={!isEditing} onChange={(e) => setEditing((m) => ({ ...m, [s.id]: { ...row, rut: e.target.value } }))} /></td>
-                            <td className="px-4 py-3"><LevelBadge level={row.level || ''} /><input className="input-field mt-1" value={row.level || ''} disabled={!isEditing} onChange={(e) => setEditing((m) => ({ ...m, [s.id]: { ...row, level: e.target.value } }))} /></td>
-                            <td className="px-4 py-3"><input className="input-field" value={row.course || ''} disabled={!isEditing} onChange={(e) => setEditing((m) => ({ ...m, [s.id]: { ...row, course: e.target.value } }))} /></td>
+                            <td className="px-4 py-3"><input className="input" value={row.rut || ''} disabled={!isEditing} onChange={(e) => setEditing((m) => ({ ...m, [s.id]: { ...row, rut: e.target.value } }))} /></td>
+                            <td className="px-4 py-3"><LevelBadge level={row.level || ''} /><input className="input mt-1" value={row.level || ''} disabled={!isEditing} onChange={(e) => setEditing((m) => ({ ...m, [s.id]: { ...row, level: e.target.value } }))} /></td>
+                            <td className="px-4 py-3"><input className="input" value={row.course || ''} disabled={!isEditing} onChange={(e) => setEditing((m) => ({ ...m, [s.id]: { ...row, course: e.target.value } }))} /></td>
                             <td className="px-4 py-3 text-right">
                               {!isEditing ? (
                                 <button className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-red-600 hover:bg-red-50" onClick={() => run('Estudiantes', async () => { if (!window.confirm('¿Eliminar este estudiante?')) return; await deleteStudent(s.id); await load(); }, 'Estudiante eliminado')}><Trash2 size={14} />Eliminar</button>
@@ -798,7 +808,7 @@ export default function AdminPanel() {
                 <div className="flex items-center gap-3 pb-3 border-b border-slate-200">
                   <label className="text-sm font-medium text-slate-700">Selecciona colegio:</label>
                   <select
-                    className="input-field flex-1 max-w-xs"
+                    className="input flex-1 max-w-xs"
                     value={selectedTenantId || tenantId || ''}
                     onChange={(e) => run('Cambio de colegio', async () => {
                       const newTenantId = e.target.value;
@@ -863,11 +873,11 @@ export default function AdminPanel() {
                 <div className="border-t pt-3">
                   <h3 className="mb-2 font-semibold">Alta inicial del colegio</h3>
                   <div className="grid grid-cols-1 gap-2 md:grid-cols-5">
-                    <input className="input-field" placeholder="slug" value={onboard.slug} onChange={(e) => setOnboard((s) => ({ ...s, slug: e.target.value }))} />
-                    <input className="input-field" placeholder="nombre" value={onboard.name} onChange={(e) => setOnboard((s) => ({ ...s, name: e.target.value }))} />
-                    <input className="input-field" placeholder="correo" value={onboard.email} onChange={(e) => setOnboard((s) => ({ ...s, email: e.target.value }))} />
-                    <select className="input-field" value={onboard.subscriptionPlan} onChange={(e) => setOnboard((s) => ({ ...s, subscriptionPlan: e.target.value }))}><option value="basic">Básico</option><option value="professional">Profesional</option><option value="enterprise">Empresarial</option></select>
-                    <input type="number" className="input-field" value={onboard.trialDays} onChange={(e) => setOnboard((s) => ({ ...s, trialDays: Number(e.target.value || 14) }))} />
+                    <input className="input" placeholder="slug" value={onboard.slug} onChange={(e) => setOnboard((s) => ({ ...s, slug: e.target.value }))} />
+                    <input className="input" placeholder="nombre" value={onboard.name} onChange={(e) => setOnboard((s) => ({ ...s, name: e.target.value }))} />
+                    <input className="input" placeholder="correo" value={onboard.email} onChange={(e) => setOnboard((s) => ({ ...s, email: e.target.value }))} />
+                    <select className="input" value={onboard.subscriptionPlan} onChange={(e) => setOnboard((s) => ({ ...s, subscriptionPlan: e.target.value }))}><option value="basic">Básico</option><option value="professional">Profesional</option><option value="enterprise">Empresarial</option></select>
+                    <input type="number" className="input" value={onboard.trialDays} onChange={(e) => setOnboard((s) => ({ ...s, trialDays: Number(e.target.value || 14) }))} />
                   </div>
                   <button className="mt-2 btn-primary px-4 py-2" onClick={() => run('Alta inicial', async () => { await onboardCollege(onboard); }, 'Alta inicial ejecutada')}>Ejecutar alta inicial</button>
                 </div>
@@ -889,7 +899,7 @@ export default function AdminPanel() {
                   <label className="text-sm text-slate-700">
                     Estado suscripción
                     <select
-                      className="input-field mt-1"
+                      className="input mt-1"
                       value={platformConfig.subscription_status}
                       onChange={(e) => setPlatformConfig((s) => ({ ...s, subscription_status: e.target.value }))}
                     >
@@ -902,7 +912,7 @@ export default function AdminPanel() {
                   <label className="text-sm text-slate-700">
                     Plan suscripción
                     <select
-                      className="input-field mt-1"
+                      className="input mt-1"
                       value={platformConfig.subscription_plan}
                       onChange={(e) => setPlatformConfig((s) => ({ ...s, subscription_plan: e.target.value }))}
                     >
@@ -915,7 +925,7 @@ export default function AdminPanel() {
                     Fin de período de prueba
                     <input
                       type="date"
-                      className="input-field mt-1"
+                      className="input mt-1"
                       value={platformConfig.trial_end_date}
                       onChange={(e) => setPlatformConfig((s) => ({ ...s, trial_end_date: e.target.value }))}
                     />
@@ -926,7 +936,7 @@ export default function AdminPanel() {
                   <label className="text-sm text-slate-700">
                     Zona horaria
                     <input
-                      className="input-field mt-1"
+                      className="input mt-1"
                       value={platformConfig.timezone}
                       onChange={(e) => setPlatformConfig((s) => ({ ...s, timezone: e.target.value }))}
                       placeholder="America/Santiago"
@@ -935,7 +945,7 @@ export default function AdminPanel() {
                   <label className="text-sm text-slate-700">
                     Idioma y región
                     <input
-                      className="input-field mt-1"
+                      className="input mt-1"
                       value={platformConfig.locale}
                       onChange={(e) => setPlatformConfig((s) => ({ ...s, locale: e.target.value }))}
                       placeholder="es-CL"
@@ -944,7 +954,7 @@ export default function AdminPanel() {
                   <label className="text-sm text-slate-700">
                     Formato de fecha
                     <input
-                      className="input-field mt-1"
+                      className="input mt-1"
                       value={platformConfig.date_format}
                       onChange={(e) => setPlatformConfig((s) => ({ ...s, date_format: e.target.value }))}
                       placeholder="dd/MM/yyyy"
@@ -1025,20 +1035,20 @@ export default function AdminPanel() {
                     </div>
                     <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4">
                       <input
-                        className="input-field"
+                        className="input"
                         placeholder="Correo *"
                         type="email"
                         value={newUser.email}
                         onChange={(e) => setNewUser((s) => ({ ...s, email: e.target.value }))}
                       />
                       <input
-                        className="input-field"
+                        className="input"
                         placeholder="Nombre completo"
                         value={newUser.fullName}
                         onChange={(e) => setNewUser((s) => ({ ...s, fullName: e.target.value }))}
                       />
                       <select
-                        className="input-field"
+                        className="input"
                         value={newUser.role}
                         onChange={(e) => setNewUser((s) => ({ ...s, role: e.target.value }))}
                       >
@@ -1047,7 +1057,7 @@ export default function AdminPanel() {
                         {isPlatformAdmin && <option value="platform_admin">Administrador de plataforma</option>}
                       </select>
                       <input
-                        className="input-field"
+                        className="input"
                         placeholder="Departamento"
                         value={newUser.department}
                         onChange={(e) => setNewUser((s) => ({ ...s, department: e.target.value }))}
@@ -1096,7 +1106,7 @@ export default function AdminPanel() {
                             <td className="px-4 py-3">
                               {isEditing ? (
                                 <select
-                                  className="input-field"
+                                  className="input"
                                   value={row.role || 'user'}
                                   onChange={(e) => setEditing((m) => ({ ...m, [u.id]: { ...row, role: e.target.value } }))}
                                 >
@@ -1111,7 +1121,7 @@ export default function AdminPanel() {
                             <td className="px-4 py-3">
                               {isEditing ? (
                                 <input
-                                  className="input-field"
+                                  className="input"
                                   value={row.department || ''}
                                   onChange={(e) => setEditing((m) => ({ ...m, [u.id]: { ...row, department: e.target.value } }))}
                                 />
@@ -1395,7 +1405,7 @@ export default function AdminPanel() {
                       <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
                         <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
                           <input
-                            className="input-field"
+                            className="input"
                             placeholder="Clave de etapa (stage_key)"
                             value={newSla.stage_key}
                             onChange={(e) => setNewSla((s) => ({ ...s, stage_key: e.target.value }))}
@@ -1403,7 +1413,7 @@ export default function AdminPanel() {
                           <input
                             type="number"
                             min={0}
-                            className="input-field"
+                            className="input"
                             placeholder="Cantidad de días"
                             value={newSla.days_to_due}
                             onChange={(e) => setNewSla((s) => ({ ...s, days_to_due: Number(e.target.value || 0) }))}
@@ -1525,7 +1535,7 @@ export default function AdminPanel() {
                 <h4 className="font-medium text-slate-900">Constructor de parámetro</h4>
                 <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
                   <select
-                    className="input-field"
+                    className="input"
                     value={settingModule}
                     onChange={(e) => setSettingModule(e.target.value)}
                   >
@@ -1539,7 +1549,7 @@ export default function AdminPanel() {
                     <option value="custom">custom</option>
                   </select>
                   <input
-                    className="input-field"
+                    className="input"
                     placeholder="Nombre interno (ej: default responsible role)"
                     value={settingName}
                     onChange={(e) => setSettingName(e.target.value)}
@@ -1560,13 +1570,13 @@ export default function AdminPanel() {
                 </p>
                 <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
                   <input
-                    className="input-field md:col-span-2"
+                    className="input md:col-span-2"
                     placeholder="Clave (setting_key)"
                     value={newSetting.key}
                     onChange={(e) => setNewSetting((s) => ({ ...s, key: e.target.value }))}
                   />
                   <select
-                    className="input-field"
+                    className="input"
                     value={newSetting.type}
                     onChange={(e) => setNewSetting((s) => ({ ...s, type: e.target.value as SettingInputType }))}
                   >
@@ -1587,7 +1597,7 @@ export default function AdminPanel() {
                   </label>
                 ) : (
                   <textarea
-                    className="input-field min-h-24"
+                    className="input min-h-24"
                     placeholder={newSetting.type === 'json' ? '{"clave":"valor"}' : 'Valor'}
                     value={newSetting.valueText}
                     onChange={(e) => setNewSetting((s) => ({ ...s, valueText: e.target.value }))}
@@ -1679,13 +1689,13 @@ export default function AdminPanel() {
                   <h4 className="font-medium text-slate-900">Parámetros configurados ({settings.length})</h4>
                   <div className="flex flex-wrap items-center gap-2">
                     <input
-                      className="input-field max-w-xs"
+                      className="input max-w-xs"
                       placeholder="Buscar parámetro"
                       value={settingSearch}
                       onChange={(e) => setSettingSearch(e.target.value)}
                     />
                     <select
-                      className="input-field w-40"
+                      className="input w-40"
                       value={settingCategoryFilter}
                       onChange={(e) => setSettingCategoryFilter(e.target.value)}
                     >
@@ -1696,7 +1706,7 @@ export default function AdminPanel() {
                       ))}
                     </select>
                     <select
-                      className="input-field w-36"
+                      className="input w-36"
                       value={settingTypeFilter}
                       onChange={(e) => setSettingTypeFilter(e.target.value as 'all' | SettingInputType)}
                     >
@@ -1725,7 +1735,7 @@ export default function AdminPanel() {
                           {editingSetting?.id === s.id ? (
                             <div className="mt-1 flex flex-wrap items-center gap-2">
                               <input
-                                className="input-field w-full md:max-w-xl"
+                                className="input w-full md:max-w-xl"
                                 value={editingSetting.valueText}
                                 onChange={(e) => setEditingSetting({ id: s.id, valueText: e.target.value })}
                               />
@@ -1806,13 +1816,13 @@ export default function AdminPanel() {
               <div className="rounded-2xl border border-slate-200 bg-white p-4">
                 <div className="mb-3 grid grid-cols-1 gap-2 md:grid-cols-4">
                   <input
-                    className="input-field"
+                    className="input"
                     placeholder="Buscar en auditoría"
                     value={auditSearch}
                     onChange={(e) => setAuditSearch(e.target.value)}
                   />
                   <select
-                    className="input-field"
+                    className="input"
                     value={auditActionFilter}
                     onChange={(e) => setAuditActionFilter(e.target.value)}
                   >
@@ -1821,7 +1831,7 @@ export default function AdminPanel() {
                     ))}
                   </select>
                   <select
-                    className="input-field"
+                    className="input"
                     value={auditTableFilter}
                     onChange={(e) => setAuditTableFilter(e.target.value)}
                   >
@@ -1841,19 +1851,19 @@ export default function AdminPanel() {
                   <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-600">Registro manual</p>
                   <div className="grid grid-cols-1 gap-2 md:grid-cols-4">
                     <input
-                      className="input-field"
+                      className="input"
                       placeholder="Acción (ej: MANUAL)"
                       value={newAuditEntry.action}
                       onChange={(e) => setNewAuditEntry((s) => ({ ...s, action: e.target.value }))}
                     />
                     <input
-                      className="input-field"
+                      className="input"
                       placeholder="Tabla"
                       value={newAuditEntry.tableName}
                       onChange={(e) => setNewAuditEntry((s) => ({ ...s, tableName: e.target.value }))}
                     />
                     <input
-                      className="input-field md:col-span-2"
+                      className="input md:col-span-2"
                       placeholder="Nota"
                       value={newAuditEntry.note}
                       onChange={(e) => setNewAuditEntry((s) => ({ ...s, note: e.target.value }))}
@@ -1889,7 +1899,7 @@ export default function AdminPanel() {
                   <input
                     type="number"
                     min={1}
-                    className="input-field w-28"
+                    className="input w-28"
                     value={auditPurgeDays}
                     onChange={(e) => setAuditPurgeDays(Number(e.target.value || 90))}
                   />
@@ -2105,7 +2115,7 @@ function CatalogEditor({
             {fields.map((field) => (
               <input
                 key={field.key}
-                className="input-field"
+                className="input"
                 placeholder={field.placeholder || field.label}
                 value={newItem[field.key] || ''}
                 type={field.type || 'text'}
@@ -2114,7 +2124,7 @@ function CatalogEditor({
             ))}
             {typeOptions && (
               <select
-                className="input-field"
+                className="input"
                 value={newItem.conduct_type || ''}
                 onChange={(e) => setNewItem((prev) => ({ ...prev, conduct_type: e.target.value }))}
               >
@@ -2200,7 +2210,7 @@ function SlaRow({
       <td className="px-4 py-2">
         <input
           type="number"
-          className="input-field w-20"
+          className="input w-20"
           value={days}
           onChange={(e) => setDays(Number(e.target.value))}
           min={0}
@@ -2264,3 +2274,4 @@ function SimpleTable({ title, headers, rows }: { title: string; headers: string[
     </div>
   );
 }
+

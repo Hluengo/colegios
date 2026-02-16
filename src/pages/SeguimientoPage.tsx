@@ -7,10 +7,7 @@ import SeguimientoForm from '../components/SeguimientoForm';
 import StageMessages from '../components/StageMessages';
 import TeamComments from '../components/TeamComments';
 import { DUE_PROCESS_STAGES } from '../constants/dueProcessStages';
-import {
-  getCaseDetails,
-  getInvolucrados,
-} from '../api/db';
+import { getCaseDetails, getInvolucrados } from '../api/db';
 
 import { useSeguimientos } from '../hooks/useSeguimientos';
 

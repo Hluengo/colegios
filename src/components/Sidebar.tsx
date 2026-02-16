@@ -18,13 +18,14 @@ import {
 
 import { BRANDING } from '../config/branding';
 import { useEffect, useMemo, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../api/supabaseClient';
 import { getCasesEnSeguimiento } from '../api/db';
 import { onDataUpdated } from '../utils/refreshBus';
 import { logger } from '../utils/logger';
 import { getStudentName } from '../utils/studentName';
-import { useAsync } from '../hooks/useAsync';
 import { useTenant } from '../context/TenantContext';
+import { queryKeys } from '../lib/queryClient';
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -35,6 +36,7 @@ export default function Sidebar({
   mobileOpen = false,
   onClose = () => {},
 }: SidebarProps) {
+  const queryClient = useQueryClient();
   const { tenant, user, isTenantAdmin, refetch } = useTenant();
   const tenantId = tenant?.id || null;
   const [collapsed, setCollapsed] = useState(() => {
@@ -67,18 +69,21 @@ export default function Sidebar({
     }
   }, [collapsed]);
 
-  // Use reusable async hook to load cases and support external refresh events
-  const [refreshKey, setRefreshKey] = useState(0);
-  const { data: enSeguimiento } = useAsync(
-    () => (tenantId ? getCasesEnSeguimiento({ tenantId }) : []),
-    [refreshKey, tenantId],
-  );
+  const { data: enSeguimiento } = useQuery({
+    queryKey: queryKeys.cases.seguimiento(tenantId || ''),
+    queryFn: () => (tenantId ? getCasesEnSeguimiento({ tenantId }) : []),
+    enabled: Boolean(tenantId),
+  });
 
-  // Subscribe to external refresh events and bump the refresh key
+  // Subscribe to refresh bus and invalidate query cache
   useEffect(() => {
-    const off = onDataUpdated(() => setRefreshKey((k) => k + 1));
+    const off = onDataUpdated(() => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.cases.seguimiento(tenantId || ''),
+      });
+    });
     return () => off();
-  }, []);
+  }, [tenantId, queryClient]);
 
   // Derive sidebar items from backend data (memoized)
   const casosFormateados = useMemo(() => {

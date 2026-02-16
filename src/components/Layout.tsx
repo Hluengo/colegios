@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import Sidebar from './Sidebar';
 import { Menu } from 'lucide-react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { checkSupabaseHealth } from '../api/health';
 import { useToast } from '../hooks/useToast';
 import { useMediaQuery } from '../hooks/useMediaQuery';
@@ -10,9 +11,9 @@ import { emitDataUpdated } from '../utils/refreshBus';
 import { logger } from '../utils/logger';
 import { useTenantTheme } from '../hooks/useTenantTheme';
 import { useTenant } from '../context/TenantContext';
-import { clearAllCache } from '../utils/queryCache';
 
 export default function Layout() {
+  const queryClient = useQueryClient();
   const location = useLocation();
   const [online, setOnline] = useState(
     typeof navigator === 'undefined' ? true : navigator.onLine,
@@ -163,12 +164,12 @@ export default function Layout() {
 
     // Cuando cambia el tenant activo, limpiar cache en memoria para evitar flash de datos cruzados.
     if (prevTenantId && currentTenantId && prevTenantId !== currentTenantId) {
-      clearAllCache();
+      queryClient.clear();
       emitDataUpdated();
     }
 
     prevTenantIdRef.current = currentTenantId;
-  }, [tenantLoading, tenant?.id]);
+  }, [tenantLoading, tenant?.id, queryClient]);
 
   if (tenantLoading || !tenant) {
     return (

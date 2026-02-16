@@ -1,0 +1,21 @@
+id,tenant_id,first_name,last_name,rut,course,level,created_at
+{UUID_1},{TENANT_ID},Juan,Pérez García,12345678-5,1° Básico,Básico,{TIMESTAMP}
+{UUID_2},{TENANT_ID},María,López Hernández,23456789-0,2° Básico,Básico,{TIMESTAMP}
+{UUID_3},{TENANT_ID},Pedro,González Müller,34567890-1,3° Básico,Básico,{TIMESTAMP}
+{UUID_4},{TENANT_ID},Ana,Martínez Sánchez,45678901-2,4° Básico,Básico,{TIMESTAMP}
+{UUID_5},{TENANT_ID},Carlos,Rodríguez Díaz,56789012-3,5° Básico,Básico,{TIMESTAMP}
+{UUID_6},{TENANT_ID},Sofía,Fernández Torres,67890123-4,6° Básico,Básico,{TIMESTAMP}
+{UUID_7},{TENANT_ID},Diego,Vargas Sánchez,78901234-5,7° Básico,Básico,{TIMESTAMP}
+{UUID_8},{TENANT_ID},Isabella,Torres Rivera,89012345-6,8° Básico,Básico,{TIMESTAMP}
+{UUID_9},{TENANT_ID},Miguel,Mendoza Castro,01234567-8,1° Medio,Medio,{TIMESTAMP}
+{UUID_10},{TENANT_ID},Valentina,Silva Ortega,11223344-5,2° Medio,Medio,{TIMESTAMP}
+{UUID_11},{TENANT_ID},Alejandro,Navarro Rojas,22334455-6,3° Medio,Medio,{TIMESTAMP}
+{UUID_12},{TENANT_ID},Camila,Aguilar Pérez,33445566-7,4° Medio,Medio,{TIMESTAMP}
+{UUID_13},{TENANT_ID},Sebastián,Cortés Jiménez,44556677-8,1° Básico,Básico,{TIMESTAMP}
+{UUID_14},{TENANT_ID},Martina,Becerra Luna,55667788-9,2° Básico,Básico,{TIMESTAMP}
+{UUID_15},{TENANT_ID},Gabriel,Reyes Gutiérrez,66778899-0,3° Básico,Básico,{TIMESTAMP}
+{UUID_16},{TENANT_ID},Emilia,Carrasco Miranda,77889900-1,4° Básico,Básico,{TIMESTAMP}
+{UUID_17},{TENANT_ID},Benjamín,Escobar Navarro,88990011-2,5° Básico,Básico,{TIMESTAMP}
+{UUID_18},{TENANT_ID},Catalina,Arias Castillo,99001122-3,6° Básico,Básico,{TIMESTAMP}
+{UUID_19},{TENANT_ID},Daniel,Vega Fuentes,10111223-4,7° Básico,Básico,{TIMESTAMP}
+{UUID_20},{TENANT_ID},Antonella,Navarro Torres,21222334-5,8° Básico,Básico,{TIMESTAMP}

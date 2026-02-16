@@ -1,11 +1,13 @@
+import { useEffect } from 'react';
+import { subscribeAuthChanges, unsubscribeAuthChanges } from './api/supabaseClient';
 import { Suspense, lazy } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
-import { TenantProvider } from './context/TenantContext';
+import { RequireAuth } from './components/RequireAuth';
 
-// Páginas en lazy loading para dividir chunks
 const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Login = lazy(() => import('./pages/Login'));
 const CasosActivos = lazy(() => import('./pages/CasosActivos'));
 const CasosCerrados = lazy(() => import('./pages/CasosCerrados'));
 const SeguimientoPage = lazy(() => import('./pages/SeguimientoPage'));
@@ -13,10 +15,8 @@ const SeguimientoWrapper = lazy(() => import('./pages/SeguimientoWrapper'));
 const CierreCasoPage = lazy(() => import('./pages/CierreCasoPage'));
 const Estadisticas = lazy(() => import('./pages/Estadisticas'));
 const AlertasPlazos = lazy(() => import('./pages/AlertasPlazos'));
+const AdminPanel = lazy(() => import('./pages/AdminPanel'));
 
-/**
- * Componente de loading con skeleton personalizado
- */
 function PageLoader() {
   return (
     <div className="p-6 animate-pulse">
@@ -37,49 +37,38 @@ function PageLoader() {
   );
 }
 
-/**
- * Error fallback para rutas
- */
-function RouteErrorFallback({ resetError = () => {} }: { resetError?: () => void }) {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-[400px] p-8 text-center">
-      <div className="w-16 h-16 mb-4 rounded-full bg-red-100 flex items-center justify-center">
-        <svg
-          className="w-8 h-8 text-red-500"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-          />
-        </svg>
-      </div>
-      <h2 className="text-xl font-semibold text-slate-800 mb-2">
-        Error al cargar la página
-      </h2>
-      <p className="text-slate-500 mb-6 max-w-md">
-        Lo sentimos, ocurrió un problema al cargar esta sección. Por favor
-        intenta de nuevo.
-      </p>
-      <button onClick={resetError} className="btn-primary px-6 py-2">
-        Reintentar
-      </button>
-    </div>
-  );
-}
-
 export default function App() {
+  useEffect(() => {
+    subscribeAuthChanges((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        localStorage.removeItem('sb-auth-token');
+      }
+    });
+    return () => {
+      unsubscribeAuthChanges();
+    };
+  }, []);
   return (
     <ErrorBoundary>
-      <TenantProvider>
-        <BrowserRouter>
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route element={<Layout />}>
+      <BrowserRouter>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+              <Route
+                path="/login"
+                element={
+                  <RequireAuth invert redirectTo="/">
+                    <Login />
+                  </RequireAuth>
+                }
+              />
+
+              <Route
+                element={
+                  <RequireAuth redirectTo="/login">
+                    <Layout />
+                  </RequireAuth>
+                }
+              >
                 <Route
                   path="/"
                   element={
@@ -144,11 +133,20 @@ export default function App() {
                     </ErrorBoundary>
                   }
                 />
+                <Route
+                  path="/admin"
+                  element={
+                    <ErrorBoundary>
+                      <AdminPanel />
+                    </ErrorBoundary>
+                  }
+                />
               </Route>
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-      </TenantProvider>
+
+              <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
     </ErrorBoundary>
   );
 }

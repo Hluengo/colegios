@@ -52,10 +52,13 @@ export default tseslint.config(
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
       // Variables no usadas
-      'no-unused-vars': ['error', { 
-        varsIgnorePattern: '^_',
-        argsIgnorePattern: '^_'
-      }],
+      'no-unused-vars': [
+        'error',
+        {
+          varsIgnorePattern: '^_',
+          argsIgnorePattern: '^_',
+        },
+      ],
       // Best practices - Warning para no bloquear build
       'no-alert': 'warn',
       'no-console': ['warn', { allow: ['warn', 'error'] }],

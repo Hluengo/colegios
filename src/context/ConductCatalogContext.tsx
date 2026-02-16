@@ -8,22 +8,33 @@ import React, {
 } from 'react';
 import { getConductTypes, getConductCatalog } from '../api/db';
 import { logger } from '../utils/logger';
+import { useTenant } from './TenantContext';
 
 const ConductCatalogContext = createContext(null);
 
 export function ConductCatalogProvider({ children }) {
+  const { tenant, isLoading: tenantLoading } = useTenant();
+  const tenantId = tenant?.id || null;
   const [conductTypes, setConductTypes] = useState([]);
   const [catalogRows, setCatalogRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const load = useCallback(async () => {
+    if (!tenantId) {
+      setConductTypes([]);
+      setCatalogRows([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
       const [types, catalog] = await Promise.all([
-        getConductTypes({ activeOnly: true }),
-        getConductCatalog({ activeOnly: true }),
+        getConductTypes({ activeOnly: true, tenantId }),
+        getConductCatalog({ activeOnly: true, tenantId }),
       ]);
       setConductTypes(types || []);
       setCatalogRows(catalog || []);
@@ -33,11 +44,12 @@ export function ConductCatalogProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [tenantId]);
 
   useEffect(() => {
+    if (tenantLoading) return;
     load();
-  }, [load]);
+  }, [load, tenantLoading]);
 
   const value = {
     conductTypes,

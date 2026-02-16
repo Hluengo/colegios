@@ -229,3 +229,60 @@ export interface CacheOptions {
   ttlMs?: number;
   revalidate?: boolean;
 }
+
+// ============================================
+// TIPOS PARA MULTI-TENANCY
+// ============================================
+
+export interface Tenant {
+  id: string;
+  slug: string;
+  name: string;
+  rut?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  logo_url?: string;
+  favicon_url?: string;
+  primary_color: string;
+  secondary_color: string;
+  subscription_status: 'trial' | 'active' | 'suspended' | 'cancelled';
+  subscription_plan: 'basic' | 'professional' | 'enterprise';
+  trial_end_date?: string;
+  timezone: string;
+  locale: string;
+  date_format: string;
+  features: Record<string, boolean>;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TenantUser {
+  id: string;
+  tenant_id: string;
+  email: string;
+  full_name?: string;
+  role: 'platform_admin' | 'tenant_admin' | 'user' | 'readonly';
+  avatar_url?: string;
+  is_active: boolean;
+}
+
+export interface TenantCatalog {
+  id: string;
+  tenant_id: string;
+  catalog_type: string;
+  key: string;
+  label: string;
+  description?: string;
+  metadata?: Record<string, unknown>;
+  display_order: number;
+  is_active: boolean;
+}
+
+// Plan limits
+export const PLAN_LIMITS = {
+  basic: { max_students: 500, max_users: 10, max_cases_per_month: 100, storage_mb: 1000 },
+  professional: { max_students: 2000, max_users: 50, max_cases_per_month: 500, storage_mb: 5000 },
+  enterprise: { max_students: -1, max_users: -1, max_cases_per_month: -1, storage_mb: 50000 },
+} as const;

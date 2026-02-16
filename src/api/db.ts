@@ -202,6 +202,14 @@ function mapControlPlazoRow(row) {
   };
 }
 
+function sanitizeSearchQuery(raw = '') {
+  // Evita romper sintaxis de filtros PostgREST en .or/.ilike
+  return String(raw)
+    .replace(/[%(),]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 /**
  * Obtener casos (activos o cerrados)
  * @param {string} status - 'Activo', 'Cerrado', o null para todos
@@ -256,7 +264,7 @@ export async function getCasesPage({
   tenantId = null,
 } = {}) {
   try {
-    const q = String(search || '').trim();
+    const q = sanitizeSearchQuery(search || '');
     const from = Math.max(0, (Number(page) - 1) * Number(pageSize));
     const to = Math.max(from, from + Number(pageSize) - 1);
 
@@ -487,23 +495,25 @@ export async function getCase(
  */
 export async function createCase(payload) {
   try {
-    const insertData = buildCaseInsert(payload);
-
-    // Temporal: mostrar payload para verificar keys antes del insert
-    console.log('createCase payload', insertData);
-
+    // Validación estricta de payload
+    const parsed = casoSchema.safeParse(payload);
+    if (!parsed.success) {
+      logger.error('Error de validación al crear caso:', parsed.error);
+      throw new Error('Datos inválidos para crear caso');
+    }
+    const insertData = buildCaseInsert(parsed.data);
     logger.debug('💾 Insertando en Supabase:', insertData);
-
     const { data, error } = await withRetry(() =>
       supabase
         .from('cases')
         .insert([insertData])
-        .select(CASE_SELECT_FULL)
+        .select('id, status, created_at, student_id')
         .single(),
     );
-
-    if (error) throw error;
-
+    if (error) {
+      logger.error('Error creando caso:', error);
+      throw new Error('No se pudo crear el caso. Intenta nuevamente.');
+    }
     return mapCaseRow(data);
   } catch (error) {
     logger.error('Error creating case:', error);
@@ -526,12 +536,7 @@ export async function updateCase(id, payload) {
     const updates = buildCaseUpdate(payload);
 
     const { data, error } = await withRetry(() =>
-      supabase
-        .from('cases')
-        .update(updates)
-        .eq('id', id)
-        .select(CASE_SELECT_FULL)
-        .single(),
+      supabase.from('cases').update(updates).eq('id', id).select(CASE_SELECT_FULL).single(),
     );
 
     if (error) throw error;
@@ -542,12 +547,6 @@ export async function updateCase(id, payload) {
   }
 }
 
-/**
- * Iniciar seguimiento de un caso (mueve de Reportado -> En Seguimiento)
- * - Setea status = 'En Seguimiento'
- * - Setea seguimiento_started_at si está NULL
- * Importante: esto permite que el caso aparezca en Sidebar/Seguimientos y active control de plazos.
- */
 export async function startSeguimiento(caseId) {
   try {
     if (!caseId) throw new Error('Se requiere caseId');
@@ -1130,12 +1129,16 @@ export async function iniciarDebidoProceso(caseId, slaDays = 10) {
 }
 
 // =================== CONDUCT TYPES (config) ===================
-export async function getConductTypes({ activeOnly = true } = {}) {
+export async function getConductTypes({
+  activeOnly = true,
+  tenantId = null,
+} = {}) {
   let q = supabase
     .from('conduct_types')
     .select('id, key, label, color, sort_order, active')
     .order('sort_order', { ascending: true });
 
+  if (tenantId) q = q.eq('tenant_id', tenantId);
   if (activeOnly) q = q.eq('active', true);
 
   const { data, error } = await q;
@@ -1147,13 +1150,17 @@ export async function getConductTypes({ activeOnly = true } = {}) {
 }
 
 // =================== CONDUCT CATALOG ===================
-export async function getConductCatalog({ activeOnly = true } = {}) {
+export async function getConductCatalog({
+  activeOnly = true,
+  tenantId = null,
+} = {}) {
   let q = supabase
     .from('conduct_catalog')
     .select('id, conduct_type, conduct_category, active, sort_order')
     .order('conduct_type', { ascending: true })
     .order('sort_order', { ascending: true });
 
+  if (tenantId) q = q.eq('tenant_id', tenantId);
   if (activeOnly) q = q.eq('active', true);
 
   const { data, error } = await q;

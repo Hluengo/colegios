@@ -17,6 +17,15 @@ function safeFileName(name = '') {
 export async function uploadEvidenceFiles({ caseId, followupId, files = [] }) {
   if (!followupId) throw new Error('Falta followupId para evidencias');
   if (!files.length) return [];
+  // Validación de tipos y tamaños
+  for (const file of files) {
+    if (!file.type.startsWith('image/') && !file.type.startsWith('application/pdf')) {
+      throw new Error('Solo se permiten imágenes y PDFs');
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      throw new Error('Archivo demasiado grande (máx 10MB)');
+    }
+  }
 
   // Resolver case_id real desde el followup
   const { data: followupRow, error: fuErr } = await withRetry(() =>
@@ -54,9 +63,10 @@ export async function uploadEvidenceFiles({ caseId, followupId, files = [] }) {
         contentType: file.type || 'application/octet-stream',
         upsert: false,
       });
-
-    if (upErr) throw upErr;
-
+    if (upErr) {
+      logger.error('Error subiendo archivo:', upErr);
+      throw new Error('No se pudo subir el archivo.');
+    }
     // 2) Insertar en DB
     const { data, error: dbErr } = await withRetry(() =>
       supabase
@@ -75,13 +85,11 @@ export async function uploadEvidenceFiles({ caseId, followupId, files = [] }) {
         .select()
         .single(),
     );
-
     if (dbErr) {
-      // cleanup para evitar huérfanos
       await supabase.storage.from(BUCKET).remove([path]);
-      throw dbErr;
+      logger.error('Error insertando evidencia en DB:', dbErr);
+      throw new Error('No se pudo guardar la evidencia.');
     }
-
     uploadedRows.push(data);
   }
 

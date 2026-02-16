@@ -1,65 +1,33 @@
-# Supabase Migrations Documentation
+# Supabase Migrations
 
-## Migration Structure
+## Estado actual
 
-Migrations are organized into directories by date, following the format YYYY-MM-DD. Each migration contains SQL scripts that are responsible for modifying the database schema.
+La carpeta `supabase/migrations` contiene la línea canónica de migraciones usada por la app.
 
-## Execution Order
+- Migraciones activas: `00_...` a `32_...`
+- Baseline funcional: `BASELINE_2026-02-14.md`
 
-Migrations are executed in chronological order. The migration system will apply all the migrations from the oldest to the newest, ensuring that your database is up-to-date with the latest schema changes.
+## Regla operativa
 
-## Table Descriptions
+1. Agregar solo migraciones nuevas e idempotentes en `supabase/migrations`.
+2. No volver a ejecutar scripts históricos agregados fuera de la secuencia canónica.
+3. Para cambios de esquema, preferir una migración incremental en lugar de editar migraciones antiguas.
 
-### Users Table
+## Scripts legacy
 
-- **id**: Unique identifier for each user (UUID)
-- **username**: Unique name for the user (String)
-- **email**: User's email address (String)
+Los scripts consolidados/particionados históricos se movieron a:
 
-### Cases Table
+- `supabase/archive/migrations-legacy/`
 
-- **id**: Unique identifier for each case (UUID)
-- **title**: Title of the case (String)
-- **description**: Description of the case (Text)
+No deben ejecutarse como parte del flujo normal de despliegue.
 
-## Views
-
-Views are virtual tables defined by a query. They can be used to simplify complex queries.
-
-### active_cases View
-
-- Displays all cases that are currently open.
-
-## RPC Functions
-
-Remote Procedure Calls (RPCs) allow you to execute server-side functions directly from your application.
-
-### fetch_user_cases
-
-- **Description**: Fetches all cases related to a specific user.
-- **Parameters**: user_id (UUID)
-
-## Storage Bucket Configuration
-
-The Supabase storage bucket is configured to hold various files related to your application. Make sure to configure permissions as necessary to control access.
-
-## Verification Queries
-
-To verify the migrations have been applied correctly, you can run the following queries:
+## Verificación mínima recomendada
 
 ```sql
-SELECT * FROM information_schema.tables; -- Check all tables exist
-SELECT * FROM active_cases; -- Verify active cases view
+select to_regclass('public.v_control_unificado');
+select to_regclass('public.conduct_types');
+select to_regclass('public.conduct_catalog');
+select to_regclass('public.stage_sla');
 ```
 
-## Rollback Instructions
-
-To rollback a migration, locate the corresponding migration file and reverse the SQL commands. Ensure you have backup copies of your data before proceeding with a rollback.
-
-## Support Information
-
-For further assistance, please refer to the documentation or contact support at support@example.com.
-
----
-
-_Last Updated: 2026-01-19 03:00:52 UTC_
+Si alguna devuelve `null`, falta aplicar migraciones en el entorno.

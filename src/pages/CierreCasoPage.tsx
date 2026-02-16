@@ -16,6 +16,7 @@ import { getCaseStatus } from '../utils/caseStatus';
 import { useToast } from '../hooks/useToast';
 import { logger } from '../utils/logger';
 import { useDueProcess } from '../hooks/useDueProcess';
+import { useConfirm } from '../components/ConfirmDialog';
 
 const CIERRE_STEPS = [
   { key: 'validacion', label: 'Validación' },
@@ -86,6 +87,7 @@ export default function CierreCasoPage() {
   const { caseId } = useParams();
   const navigate = useNavigate();
   const { push } = useToast();
+  const { confirm, ConfirmDialog } = useConfirm();
   const { stages: dueStages } = useDueProcess(caseId);
   const effectiveStages = useMemo(
     () => (dueStages && dueStages.length ? dueStages : DUE_PROCESS_STAGES),
@@ -289,7 +291,12 @@ export default function CierreCasoPage() {
       return;
     }
 
-    if (!confirm('¿Confirmar cierre del caso?')) return;
+    const accepted = await confirm({
+      title: 'Confirmar cierre',
+      message: '¿Seguro que deseas cerrar este caso? Esta acción quedará registrada.',
+      variant: 'warning',
+    });
+    if (!accepted) return;
 
     try {
       const nowIso = new Date().toISOString();
@@ -340,6 +347,7 @@ export default function CierreCasoPage() {
 
   return (
     <div className="h-full w-full">
+      <ConfirmDialog />
       <div className="max-w-5xl mx-auto">
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="px-6 py-5 border-b border-slate-100 bg-gradient-to-r from-brand-50/70 to-transparent flex items-start justify-between">

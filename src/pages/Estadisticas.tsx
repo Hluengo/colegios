@@ -496,7 +496,10 @@ export default function Estadisticas() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {reincidentesList.slice(0, 50).map((r, i) => (
-                    <tr key={i} className="hover:bg-brand-50 transition-colors">
+                    <tr
+                      key={`${r.estudiante || 'est'}-${r.total || 0}-${i}`}
+                      className="hover:bg-brand-50 transition-colors"
+                    >
                       <td className="px-4 py-2.5">
                         <button
                           onClick={() =>
@@ -572,9 +575,9 @@ export default function Estadisticas() {
           </h3>
           <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-slate-700 mb-4">
             {/* Legend generated from conductTypes */}
-            {(conductTypes || []).map((t) => (
+            {(conductTypes || []).map((t, i) => (
               <div
-                key={t.key}
+                key={`${t.key || t.label || 'conduct'}-${i}`}
                 className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-slate-50 border border-slate-100"
               >
                 <span
@@ -599,7 +602,7 @@ export default function Estadisticas() {
               >
                 {dataTipo.map((entry, i) => (
                   <Cell
-                    key={i}
+                    key={`${entry.name}-${i}`}
                     fill={
                       typeColorByKey[entry.name] ||
                       tipoPalette[i % tipoPalette.length] ||
@@ -666,7 +669,7 @@ export default function Estadisticas() {
               >
                 {dataCursos.map((entry, index) => (
                   <Cell
-                    key={`cell-${index}`}
+                    key={`cell-${entry.curso || 'curso'}-${index}`}
                     fill={coloresCursos[entry.curso]}
                   />
                 ))}

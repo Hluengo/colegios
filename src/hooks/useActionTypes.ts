@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../api/supabaseClient';
+import { logger } from '../utils/logger';
 
 /**
  * Hook para obtener los tipos de acciones desde Supabase
@@ -23,7 +24,7 @@ export default function useActionTypes() {
         if (cancelled) return;
 
         if (fetchError) {
-          console.warn(
+          logger.warn(
             'Error fetching action_types, falling back to defaults:',
             fetchError,
           );
@@ -42,7 +43,7 @@ export default function useActionTypes() {
         }
       } catch (err) {
         if (cancelled) return;
-        console.warn('Error in useActionTypes:', err);
+        logger.warn('Error in useActionTypes:', err);
         // Fallback to defaults
         setActions([
           'Entrevista',

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Eye, Plus, Folder, Search, X } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
@@ -14,36 +15,37 @@ import { formatDate } from '../utils/formatDate';
 import { tipBadgeClasses } from '../utils/tipColors';
 import { onDataUpdated } from '../utils/refreshBus';
 import { logger } from '../utils/logger';
-import useCachedAsync from '../hooks/useCachedAsync';
-import { clearCache } from '../utils/queryCache';
 import { parseLocalDate } from '../utils/dateUtils';
 import InlineError from '../components/InlineError';
 import usePersistedState from '../hooks/usePersistedState';
 import { getCaseStatus, getCaseStatusLabel } from '../utils/caseStatus';
 import { useTenant } from '../context/TenantContext';
+import { useToast } from '../hooks/useToast';
+import { queryKeys } from '../lib/queryClient';
+import { Button, Input, Select } from '../components/ui';
 
 export default function CasosActivos() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { tenant } = useTenant();
+  const { push } = useToast();
   const tenantId = tenant?.id || '';
   const [searchParams, setSearchParams] = useSearchParams();
-  const [casos, setCasos] = useState([]);
   const [selectedCaso, setSelectedCaso] = useState(null);
-  const [loadingPlazos, setLoadingPlazos] = useState(false);
   const [nuevo, setNuevo] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [plazos, setPlazos] = useState(new Map());
-  const [totalCasos, setTotalCasos] = useState(0);
-  const [search, setSearch] = usePersistedState('casosActivos.search', '');
+  const [search, setSearch] = usePersistedState(
+    `casosActivos:${tenantId}:search`,
+    '',
+  );
   const [estadoFiltro, setEstadoFiltro] = usePersistedState(
-    'casosActivos.estado',
+    `casosActivos:${tenantId}:estado`,
     'Todos',
   );
   const [pageSize, setPageSize] = usePersistedState(
-    'casosActivos.pageSize',
+    `casosActivos:${tenantId}:pageSize`,
     10,
   );
-  const [page, setPage] = usePersistedState('casosActivos.page', 1);
+  const [page, setPage] = usePersistedState(`casosActivos:${tenantId}:page`, 1);
 
   useEffect(() => {
     const estudianteFromQuery = (searchParams.get('estudiante') || '').trim();
@@ -59,11 +61,18 @@ export default function CasosActivos() {
 
   const {
     data: casesPage,
-    loading: loadingCases,
+    isLoading: loadingCases,
     error: errorCases,
-  } = useCachedAsync(
-    `cases:activos:${tenantId}:${page}:${pageSize}:${estadoFiltro}:${search || ''}`,
-    () =>
+    refetch: refetchCases,
+  } = useQuery({
+    queryKey: queryKeys.cases.activos(
+      tenantId,
+      page,
+      pageSize,
+      estadoFiltro,
+      search || '',
+    ),
+    queryFn: () =>
       getCasesPage({
         excludeStatus: 'Cerrado',
         status: estadoFiltro !== 'Todos' ? estadoFiltro : null,
@@ -72,91 +81,88 @@ export default function CasosActivos() {
         pageSize,
         tenantId: tenantId || null,
       }),
-    [refreshKey, tenantId, page, pageSize, estadoFiltro, search],
-    {
-      ttlMs: 30000,
-    },
-  );
+    enabled: Boolean(tenantId),
+  });
 
-  useEffect(() => {
-    if (!casesPage) return;
-    const activos = casesPage.rows || [];
-    setTotalCasos(casesPage.total || 0);
+  const activos = useMemo(() => casesPage?.rows || [], [casesPage]);
+  const totalCasos = casesPage?.total || 0;
+  const caseIds = useMemo(() => activos.map((c) => c.id), [activos]);
 
-    // Helpers
-    async function loadAndSort() {
-      setLoadingPlazos(true);
-      let m = new Map();
-      try {
-        const ids = activos.map((c) => c.id);
-        m = await getPlazosResumenMany(ids);
-        setPlazos(m);
-      } catch (plErr) {
-        logger.warn('No se pudo cargar resumen de plazos:', plErr?.message);
-        m = new Map();
-        setPlazos(new Map());
-      } finally {
-        setLoadingPlazos(false);
-      }
+  const {
+    data: plazos = new Map(),
+    isLoading: loadingPlazos,
+    error: errorPlazos,
+    refetch: refetchPlazos,
+  } = useQuery({
+    queryKey: ['plazos', 'resumen-many', tenantId, ...caseIds],
+    queryFn: () => getPlazosResumenMany(caseIds),
+    enabled: Boolean(tenantId) && caseIds.length > 0,
+  });
 
-      // Orden sugerido: urgencia de plazos > estado del caso > antigüedad
-      function plazoRank(caso) {
-        const r = m.get(caso.id);
-        const txt = (r?.alerta_urgencia || '').toUpperCase();
-        if (!r) return 5;
-        if (!txt) return 4; // Sin plazo
-        if (txt.includes('VENCIDO')) return 0;
-        if (txt.includes('VENCE HOY')) return 1;
-        if (txt.includes('PRÓXIMO') || txt.includes('PROXIMO')) return 2;
-        if (
-          txt.includes('EN PLAZO') ||
-          txt.includes('AL DÍA') ||
-          txt.includes('AL DIA')
-        )
-          return 3;
-        return 5;
-      }
+  const casos = useMemo(() => {
+    const rows = [...activos];
 
-      function estadoRank(caso) {
-        const e = getCaseStatus(caso, 'reportado');
-        if (e === 'reportado') return 0;
-        if (e === 'en seguimiento') return 1;
-        return 2;
-      }
-
-      activos.sort((a, b) => {
-        const pr = plazoRank(a) - plazoRank(b);
-        if (pr !== 0) return pr;
-        const er = estadoRank(a) - estadoRank(b);
-        if (er !== 0) return er;
-        const da = parseLocalDate(a.incident_date)?.getTime() || 0;
-        const db = parseLocalDate(b.incident_date)?.getTime() || 0;
-        return da - db;
-      });
-
-      setCasos(activos);
+    function plazoRank(caso) {
+      const r = plazos.get(caso.id);
+      const txt = (r?.alerta_urgencia || '').toUpperCase();
+      if (!r) return 5;
+      if (!txt) return 4;
+      if (txt.includes('VENCIDO')) return 0;
+      if (txt.includes('VENCE HOY')) return 1;
+      if (txt.includes('PRÓXIMO') || txt.includes('PROXIMO')) return 2;
+      if (
+        txt.includes('EN PLAZO') ||
+        txt.includes('AL DÍA') ||
+        txt.includes('AL DIA')
+      )
+        return 3;
+      return 5;
     }
 
-    loadAndSort();
-  }, [casesPage]);
+    function estadoRank(caso) {
+      const e = getCaseStatus(caso, 'reportado');
+      if (e === 'reportado') return 0;
+      if (e === 'en seguimiento') return 1;
+      return 2;
+    }
+
+    rows.sort((a, b) => {
+      const pr = plazoRank(a) - plazoRank(b);
+      if (pr !== 0) return pr;
+      const er = estadoRank(a) - estadoRank(b);
+      if (er !== 0) return er;
+      const da = parseLocalDate(a.incident_date)?.getTime() || 0;
+      const db = parseLocalDate(b.incident_date)?.getTime() || 0;
+      return da - db;
+    });
+
+    return rows;
+  }, [activos, plazos]);
 
   useEffect(() => {
-    if (!errorCases) return;
-    logger.error(errorCases);
-  }, [errorCases]);
+    if (!errorCases && !errorPlazos) return;
+    logger.error(errorCases || errorPlazos);
+  }, [errorCases, errorPlazos]);
 
   useEffect(() => {
-    // ✅ Escuchar cambios de datos
     const off = onDataUpdated(() => {
       logger.debug('🔄 Refrescando casos activos...');
-      clearCache(
-        `cases:activos:${tenantId}:${page}:${pageSize}:${estadoFiltro}:${search || ''}`,
-      );
-      setRefreshKey((k) => k + 1);
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.cases.activos(
+          tenantId,
+          page,
+          pageSize,
+          estadoFiltro,
+          search || '',
+        ),
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['plazos', 'resumen-many', tenantId],
+      });
     });
 
     return () => off();
-  }, [tenantId, page, pageSize, estadoFiltro, search]);
+  }, [tenantId, page, pageSize, estadoFiltro, search, queryClient]);
 
   function businessDaysBetween(startDate, endDate) {
     if (!startDate || !endDate) return null;
@@ -257,21 +263,22 @@ export default function CasosActivos() {
     );
   }
 
-  const loading = loadingCases || loadingPlazos;
+  const loading = loadingCases || (caseIds.length > 0 && loadingPlazos);
+  const error = errorCases || errorPlazos;
   const totalPages = Math.max(1, Math.ceil(totalCasos / pageSize));
   const currentPage = Math.min(page, totalPages);
   const pagedCasos = useMemo(() => casos, [casos]);
 
   return (
     <div className="h-full p-2">
-      {errorCases && (
+      {error && (
         <div className="mb-4">
           <InlineError
             title="Error al cargar casos"
-            message={errorCases?.message || String(errorCases)}
+            message={error?.message || String(error)}
             onRetry={() => {
-              clearCache('cases:all');
-              setRefreshKey((k) => k + 1);
+              refetchCases();
+              if (caseIds.length > 0) refetchPlazos();
             }}
           />
         </div>
@@ -287,13 +294,13 @@ export default function CasosActivos() {
           </span>
         </div>
 
-        <button
+        <Button
           onClick={() => setNuevo(true)}
-          className="bg-brand-600 hover:bg-brand-700 text-white flex items-center gap-2 text-sm px-4 py-2.5 rounded-xl font-semibold shadow-soft"
+          leftIcon={<Plus size={18} />}
+          className="shadow-soft"
         >
-          <Plus size={18} />
           <span className="hidden sm:inline">Nuevo Caso</span>
-        </button>
+        </Button>
       </div>
 
       {!loading && totalCasos > 0 && (
@@ -302,26 +309,28 @@ export default function CasosActivos() {
             Página {currentPage} de {totalPages}
           </span>
           <div className="flex items-center gap-2">
-            <button
+            <Button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1.5 rounded-lg border border-slate-200 disabled:opacity-50 hover:bg-brand-50 hover:border-brand-200 transition-colors"
+              variant="secondary"
+              size="sm"
             >
               Anterior
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="px-3 py-1.5 rounded-lg border border-slate-200 disabled:opacity-50 hover:bg-brand-50 hover:border-brand-200 transition-colors"
+              variant="secondary"
+              size="sm"
             >
               Siguiente
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
       <div className="flex flex-col sm:flex-row gap-3 px-2 mb-4">
-        <input
+        <Input
           type="text"
           value={search}
           onChange={(e) => {
@@ -329,42 +338,44 @@ export default function CasosActivos() {
             setPage(1);
           }}
           placeholder="Buscar por estudiante, curso o conducta"
-          className="flex-1 px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-500 transition-colors"
+          className="flex-1"
         />
-        <select
+        <Select
           value={estadoFiltro}
           onChange={(e) => {
             setEstadoFiltro(e.target.value);
             setPage(1);
           }}
-          className="px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-500"
-        >
-          <option value="Todos">Todos</option>
-          <option value="Reportado">Reportado</option>
-          <option value="En Seguimiento">En Seguimiento</option>
-        </select>
-        <select
-          value={pageSize}
+          options={[
+            { value: 'Todos', label: 'Todos' },
+            { value: 'Reportado', label: 'Reportado' },
+            { value: 'En Seguimiento', label: 'En Seguimiento' },
+          ]}
+          className="min-w-[160px]"
+        />
+        <Select
+          value={String(pageSize)}
           onChange={(e) => {
             setPageSize(Number(e.target.value));
             setPage(1);
           }}
-          className="px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-500"
-        >
-          <option value={10}>10 por página</option>
-          <option value={20}>20 por página</option>
-          <option value={50}>50 por página</option>
-        </select>
-        <button
+          options={[
+            { value: '10', label: '10 por página' },
+            { value: '20', label: '20 por página' },
+            { value: '50', label: '50 por página' },
+          ]}
+          className="min-w-[150px]"
+        />
+        <Button
           onClick={() => {
             setSearch('');
             setEstadoFiltro('Todos');
             setPage(1);
           }}
-          className="px-3 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-brand-50 hover:border-brand-200"
+          variant="secondary"
         >
           Limpiar
-        </button>
+        </Button>
       </div>
 
       <div className="glass-panel overflow-hidden flex flex-col border border-slate-200 shadow-sm ring-1 ring-brand-100/50">
@@ -402,13 +413,13 @@ export default function CasosActivos() {
               <p className="text-slate-600 font-medium mb-4">
                 No hay casos activos en este momento.
               </p>
-              <button
+              <Button
                 onClick={() => setNuevo(true)}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-600 text-white font-semibold hover:bg-brand-700 transition-colors shadow-soft"
+                leftIcon={<Plus size={18} />}
+                className="shadow-soft"
               >
-                <Plus size={18} />
                 Crear nuevo caso
-              </button>
+              </Button>
             </div>
           )}
 
@@ -420,17 +431,17 @@ export default function CasosActivos() {
               <p className="text-slate-600 font-medium mb-3">
                 No hay resultados con los filtros seleccionados.
               </p>
-              <button
+              <Button
                 onClick={() => {
                   setSearch('');
                   setEstadoFiltro('Todos');
                   setPage(1);
                 }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-brand-50 hover:border-brand-200 font-medium transition-colors"
+                leftIcon={<X size={16} />}
+                variant="secondary"
               >
-                <X size={16} />
                 Limpiar filtros
-              </button>
+              </Button>
             </div>
           )}
 
@@ -511,9 +522,13 @@ export default function CasosActivos() {
                                 }
                                 navigate(`/seguimientos/${caso.id}`);
                               } catch (e) {
-                                alert(
-                                  `No se pudo iniciar seguimiento: ${e?.message || e}`,
-                                );
+                                push({
+                                  type: 'error',
+                                  title: 'Seguimiento',
+                                  message:
+                                    e?.message ||
+                                    'No se pudo iniciar el seguimiento del caso',
+                                });
                               }
                             }}
                             className={`px-3 py-2.5 rounded-lg text-xs font-semibold hover:opacity-90 ${
@@ -548,7 +563,15 @@ export default function CasosActivos() {
           onClose={() => setNuevo(false)}
           onSaved={() => {
             setNuevo(false);
-            setRefreshKey((k) => k + 1);
+            queryClient.invalidateQueries({
+              queryKey: queryKeys.cases.activos(
+                tenantId,
+                page,
+                pageSize,
+                estadoFiltro,
+                search || '',
+              ),
+            });
           }}
         />
       )}

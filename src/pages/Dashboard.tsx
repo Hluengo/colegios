@@ -7,7 +7,8 @@ import {
   Timer,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   PieChart,
   Pie,
@@ -30,11 +31,10 @@ import { getStudentName } from '../utils/studentName';
 import { onDataUpdated } from '../utils/refreshBus';
 import { useToast } from '../hooks/useToast';
 import { logger } from '../utils/logger';
-import useCachedAsync from '../hooks/useCachedAsync';
-import { clearCache } from '../utils/queryCache';
 import InlineError from '../components/InlineError';
 import { getCaseStatus } from '../utils/caseStatus';
 import { useTenant } from '../context/TenantContext';
+import { queryKeys } from '../lib/queryClient';
 
 const COLORS = [
   '#dc2626',
@@ -72,6 +72,7 @@ function DashboardSkeleton() {
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { tenant } = useTenant();
   const tenantId = tenant?.id || '';
 
@@ -79,10 +80,6 @@ export default function Dashboard() {
      DATA
   ========================== */
 
-  const [casosActivos, setCasosActivos] = useState([]);
-  const [casosCerrados, setCasosCerrados] = useState([]);
-  const [alertasPlazo, setAlertasPlazo] = useState([]);
-  const [refreshKey, setRefreshKey] = useState(0);
   const { push } = useToast();
 
   // Hooks for conduct catalog/colors must run unconditionally
@@ -102,52 +99,48 @@ export default function Dashboard() {
   );
 
   const {
-    data: allCases,
-    loading: loadingCases,
+    data: allCases = [],
+    isLoading: loadingCases,
     error: errorCases,
-  } = useCachedAsync(
-    `cases:all:${tenantId}`,
-    () => getCases(null, { tenantId: tenantId || null }),
-    [refreshKey, tenantId],
-    {
-      ttlMs: 30000,
-    },
-  );
+    refetch: refetchCases,
+  } = useQuery({
+    queryKey: queryKeys.cases.allByTenant(tenantId),
+    queryFn: () => getCases(null, { tenantId: tenantId || null }),
+    enabled: Boolean(tenantId),
+  });
 
   const {
-    data: plazos,
-    loading: loadingPlazos,
+    data: plazos = [],
+    isLoading: loadingPlazos,
     error: errorPlazos,
-  } = useCachedAsync(
-    `control_alertas:${tenantId}`,
-    () => getAllControlAlertas(),
-    [refreshKey, tenantId],
-    {
-      ttlMs: 30000,
-    },
-  );
+    refetch: refetchPlazos,
+  } = useQuery({
+    queryKey: queryKeys.alerts.plazos(tenantId),
+    queryFn: () => getAllControlAlertas(),
+    enabled: Boolean(tenantId),
+  });
 
   const loading = loadingCases || loadingPlazos;
   const error = errorCases || errorPlazos;
 
-  useEffect(() => {
-    if (!allCases) return;
-    const activos = allCases.filter((c) => getCaseStatus(c, '') !== 'cerrado');
-    const cerrados = allCases.filter((c) => getCaseStatus(c, '') === 'cerrado');
-
-    setCasosActivos(activos);
-    setCasosCerrados(cerrados);
-
-    if (!plazos) return;
-    // Filtrar alertas: no mostrar alertas vinculadas a casos cerrados
-    const plazosFiltrados = (plazos || []).filter((a) => {
-      const casoId = a.case_id;
-      if (!casoId) return true;
-      const caso = allCases.find((c) => c.id === casoId);
-      return getCaseStatus(caso, '') !== 'cerrado';
-    });
-    setAlertasPlazo(plazosFiltrados);
-  }, [allCases, plazos]);
+  const casosActivos = useMemo(
+    () => allCases.filter((c) => getCaseStatus(c, '') !== 'cerrado'),
+    [allCases],
+  );
+  const casosCerrados = useMemo(
+    () => allCases.filter((c) => getCaseStatus(c, '') === 'cerrado'),
+    [allCases],
+  );
+  const alertasPlazo = useMemo(
+    () =>
+      (plazos || []).filter((a) => {
+        const casoId = a.case_id;
+        if (!casoId) return true;
+        const caso = allCases.find((c) => c.id === casoId);
+        return getCaseStatus(caso, '') !== 'cerrado';
+      }),
+    [allCases, plazos],
+  );
 
   useEffect(() => {
     if (!error) return;
@@ -161,12 +154,15 @@ export default function Dashboard() {
 
   useEffect(() => {
     const off = onDataUpdated(() => {
-      clearCache(`cases:all:${tenantId}`);
-      clearCache(`control_alertas:${tenantId}`);
-      setRefreshKey((k) => k + 1);
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.cases.allByTenant(tenantId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.alerts.plazos(tenantId),
+      });
     });
     return () => off();
-  }, [tenantId]);
+  }, [tenantId, queryClient]);
 
   if (loading) return <DashboardSkeleton />;
   if (error)
@@ -175,9 +171,8 @@ export default function Dashboard() {
         title="Error al cargar dashboard"
         message={error?.message || 'Fallo de red'}
         onRetry={() => {
-          clearCache(`cases:all:${tenantId}`);
-          clearCache(`control_alertas:${tenantId}`);
-          setRefreshKey((k) => k + 1);
+          refetchCases();
+          refetchPlazos();
         }}
       />
     );
