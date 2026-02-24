@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { createFollowup, getResponsables } from '../api/db';
 import { uploadEvidenceFiles } from '../api/evidence';
 import { DUE_PROCESS_STAGES } from '../constants/dueProcessStages';
@@ -11,7 +11,7 @@ function todayISODate() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export default function SeguimientoForm({
+function SeguimientoForm({
   caseId,
   defaultStage,
   stages = DUE_PROCESS_STAGES,
@@ -61,17 +61,17 @@ export default function SeguimientoForm({
     );
   }, [form]);
 
-  function addFiles(newFiles: FileList | File[] | null) {
+  const addFiles = useCallback((newFiles: FileList | File[] | null) => {
     const arr = Array.from(newFiles || []);
     if (!arr.length) return;
     setFiles((prev) => [...prev, ...arr]);
-  }
+  }, []);
 
-  function removeFile(idx: number) {
+  const removeFile = useCallback((idx: number) => {
     setFiles((prev) => prev.filter((_, i) => i !== idx));
-  }
+  }, []);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const handleSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!canSubmit) return;
 
@@ -114,7 +114,7 @@ export default function SeguimientoForm({
     } finally {
       setSubmitting(false);
     }
-  }
+  }, [caseId, form, files, canSubmit, push, onSaved]);
 
   return (
     <form
@@ -287,3 +287,11 @@ export default function SeguimientoForm({
     </form>
   );
 }
+
+export default React.memo(SeguimientoForm, (prev, next) => {
+  return (
+    prev.caseId === next.caseId &&
+    prev.defaultStage === next.defaultStage &&
+    JSON.stringify(prev.stages) === JSON.stringify(next.stages)
+  );
+});

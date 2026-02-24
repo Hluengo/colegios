@@ -1,4 +1,5 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
+import React from 'react';
 import useConductCatalog from '../hooks/useConductCatalog';
 import { formatDate } from '../utils/formatDate';
 import {
@@ -28,7 +29,7 @@ type Seguimiento = {
   conduct_type?: string | null;
 };
 
-export default function SeguimientoItem({
+function SeguimientoItem({
   seg,
   readOnly = false,
 }: {
@@ -75,7 +76,7 @@ export default function SeguimientoItem({
     };
   }, [seg.id, push]);
 
-  async function handleOpen(row: EvidenceRow) {
+  const handleOpen = useCallback(async (row: EvidenceRow) => {
     try {
       const url = await getEvidenceSignedUrl(row.storage_path);
       window.open(url, '_blank');
@@ -86,9 +87,9 @@ export default function SeguimientoItem({
         message: e?.message || 'Intenta de nuevo',
       });
     }
-  }
+  }, [push]);
 
-  async function handleDelete(row: EvidenceRow) {
+  const handleDelete = useCallback(async (row: EvidenceRow) => {
     if (readOnly) return;
     if (!confirm('¿Eliminar esta evidencia?')) return;
     try {
@@ -109,7 +110,7 @@ export default function SeguimientoItem({
     } finally {
       setDeletingId(null);
     }
-  }
+  }, [readOnly, push]);
 
   const tipo = seg?.conduct_type || null;
   const { conductTypes = [] } = useConductCatalog();
@@ -274,3 +275,10 @@ export default function SeguimientoItem({
     </div>
   );
 }
+
+export default React.memo(SeguimientoItem, (prev, next) => {
+  return (
+    prev.seg.id === next.seg.id &&
+    prev.readOnly === next.readOnly
+  );
+});
