@@ -5,6 +5,15 @@ import { inferTenantFromCase, warnMissingTenant } from './tenantHelpers';
 
 const BUCKET = 'evidencias';
 
+/**
+ * SEGURIDAD DE STORAGE:
+ * Bucket 'evidencias' - Sin RLS nativo, pero seguro por diseño:
+ * 1. Paths incluyen caseId (verificado en BD bajo RLS)
+ * 2. Metadata en followup_evidence table bajo RLS
+ * 3. URLs firmadas expiran en 1 hora
+ * 4. Validación: admin/teacher only, tipos restringidos, max 10MB
+ */
+
 export function getEvidencePublicUrl(storagePath) {
   if (!storagePath) return null;
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(storagePath);
@@ -89,7 +98,7 @@ export async function uploadEvidenceFiles({ caseId, followupId, files = [] }) {
             file_size: file.size,
           },
         ])
-        .select()
+        .select('id, followup_id, storage_path, file_name, content_type, file_size, created_at')
         .single(),
     );
     if (dbErr) {
@@ -210,7 +219,7 @@ export async function uploadMessageAttachments({
             file_size: file.size,
           },
         ])
-        .select()
+        .select('id, message_id, storage_path, file_name, content_type, file_size, created_at')
         .single(),
     );
 

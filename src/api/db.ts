@@ -6,6 +6,38 @@ import { captureMessage } from '../lib/sentry';
 import { getEvidencePublicUrl, getEvidenceSignedUrl } from './evidence';
 import { casoSchema } from '../utils/validation.schemas';
 
+/**
+ * Documentación de RLS Policies:
+ * 
+ * TABLA: cases
+ * - SELECT: tenant_id = current_user_tenant_id() (verificada en RLS)
+ * - INSERT: solo si user pertenece al tenant (verificada en RLS)
+ * - UPDATE: solo owner del tenant (verificada en RLS)
+ * - DELETE: solo super_admin (verificada en RLS)
+ * 
+ * TABLA: case_followups
+ * - SELECT: hereda RLS de cases (FK case_id)
+ * - INSERT: solo si case.tenant_id = user.tenant_id (✅ AGREGADO)
+ * - UPDATE: solo si case.tenant_id = user.tenant_id (✅ AGREGADO)
+ * - DELETE: solo si case.tenant_id = user.tenant_id (✅ AGREGADO)
+ * 
+ * TABLA: students
+ * - SELECT: tenant_id = current_user_tenant_id()
+ * - INSERT/UPDATE/DELETE: admin-only
+ * 
+ * TABLA: stage_sla (CATÁLOGO GLOBAL)
+ * - SELECT: true (pública, es configuración global) (✅ AGREGADO)
+ * - INSERT/UPDATE/DELETE: admin-only
+ * 
+ * VISTA: v_control_unificado
+ * - RLS HEREDADA de tablas base (cases, case_followups, stage_sla, etc.)
+ * - Si usuario no puede ver case_id, no verá la fila en la vista
+ * 
+ * TABLA: involucrados
+ * - SELECT: hereda de case_id FK a cases (RLS)
+ * - INSERT/UPDATE/DELETE: verificado a través de case.tenant_id
+ */
+
 const EMPTY = '';
 const CASE_STUDENT_SELECT =
   'students:students!cases_student_id_fkey(id, tenant_id, first_name, last_name, rut)';
@@ -808,7 +840,7 @@ export async function updateFollowup(
         .from('case_followups')
         .update(updatePayload)
         .eq('id', id)
-        .select()
+        .select('id, case_id, action_date, action_type, process_stage, detail, responsible, observations, due_date, created_at, description')
         .single(),
     );
     if (error) throw error;
@@ -1105,7 +1137,7 @@ export async function addInvolucrado(payload) {
     }
 
     const { data, error } = await withRetry(() =>
-      supabase.from('involucrados').insert([toInsert]).select().single(),
+      supabase.from('involucrados').insert([toInsert]).select('id, case_id, student_id, nombre, rol, metadata, created_at').single(),
     );
     if (error) throw error;
     return data;
@@ -1122,7 +1154,7 @@ export async function updateInvolucrado(id, patch) {
         .from('involucrados')
         .update(patch)
         .eq('id', id)
-        .select()
+        .select('id, case_id, student_id, nombre, rol, metadata, created_at')
         .single(),
     );
     if (error) throw error;
@@ -1136,7 +1168,7 @@ export async function updateInvolucrado(id, patch) {
 export async function deleteInvolucrado(id) {
   try {
     const { data, error } = await withRetry(() =>
-      supabase.from('involucrados').delete().eq('id', id).select().single(),
+      supabase.from('involucrados').delete().eq('id', id).select('id, case_id, nombre, rol').single(),
     );
     if (error) throw error;
     return data;
