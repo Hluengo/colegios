@@ -700,8 +700,16 @@ export async function createFollowup(input) {
       .toString()
       .split('T')[0];
 
+    // Resolver tenant_id del caso para propagarlo al followup
+    const { data: caseRow, error: caseErr } = await withRetry(() =>
+      supabase.from('cases').select('tenant_id').eq('id', caseId).single(),
+    );
+    if (caseErr) throw caseErr;
+    const tenantId = caseRow?.tenant_id || null;
+
     const row = {
       case_id: caseId,
+      tenant_id: tenantId,
       action_date: actionDate,
       action_type: input.action_type || 'Monitoreo',
       process_stage: input.process_stage || '',
