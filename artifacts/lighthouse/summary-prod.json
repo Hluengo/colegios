@@ -1,0 +1,20 @@
+[
+  {
+    "route": "/login",
+    "score": 68,
+    "outFile": "artifacts/lighthouse/lh-prod-login.json",
+    "finalUrl": "http://127.0.0.1:4174/login"
+  },
+  {
+    "route": "/",
+    "score": 100,
+    "outFile": "artifacts/lighthouse/lh-prod-root.json",
+    "finalUrl": "http://127.0.0.1:4174/login"
+  },
+  {
+    "route": "/casos-activos",
+    "score": 88,
+    "outFile": "artifacts/lighthouse/lh-prod-casos-activos.json",
+    "finalUrl": "http://127.0.0.1:4174/login"
+  }
+]

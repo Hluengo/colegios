@@ -1,0 +1,68 @@
+[
+  {
+    "device": "Galaxy-S24",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "step": "login",
+    "loginOk": false,
+    "loginUrl": "http://127.0.0.1:4173/login",
+    "loginError": "Invalid login credentials"
+  },
+  {
+    "device": "Pixel-8",
+    "viewport": {
+      "width": 393,
+      "height": 837
+    },
+    "step": "login",
+    "loginOk": false,
+    "loginUrl": "http://127.0.0.1:4173/login",
+    "loginError": "Invalid login credentials"
+  },
+  {
+    "device": "Samsung-Tablet",
+    "viewport": {
+      "width": 800,
+      "height": 1280
+    },
+    "step": "login",
+    "loginOk": false,
+    "loginUrl": "http://127.0.0.1:4173/login",
+    "loginError": "Invalid login credentials"
+  },
+  {
+    "device": "iPhone-15-16",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    },
+    "step": "login",
+    "loginOk": false,
+    "loginUrl": "http://127.0.0.1:4173/login",
+    "loginError": "Invalid login credentials"
+  },
+  {
+    "device": "iPhone-SE-375",
+    "viewport": {
+      "width": 375,
+      "height": 667
+    },
+    "step": "login",
+    "loginOk": false,
+    "loginUrl": "http://127.0.0.1:4173/login",
+    "loginError": "Invalid login credentials"
+  },
+  {
+    "device": "iPad-mini",
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "step": "login",
+    "loginOk": false,
+    "loginUrl": "http://127.0.0.1:4173/login",
+    "loginError": "Invalid login credentials"
+  }
+]

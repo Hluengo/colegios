@@ -1,0 +1,68 @@
+[
+  {
+    "device": "Galaxy-S24",
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "bodyScrollWidth": 390,
+    "bodyClientWidth": 390,
+    "hasHorizontalOverflow": false,
+    "mainHeight": 844,
+    "supportsDvh": true,
+    "screenshot": "artifacts/responsive/Galaxy-S24.png"
+  },
+  {
+    "device": "Pixel-8",
+    "scrollWidth": 393,
+    "clientWidth": 393,
+    "bodyScrollWidth": 393,
+    "bodyClientWidth": 393,
+    "hasHorizontalOverflow": false,
+    "mainHeight": 837,
+    "supportsDvh": true,
+    "screenshot": "artifacts/responsive/Pixel-8.png"
+  },
+  {
+    "device": "Samsung-Tablet",
+    "scrollWidth": 800,
+    "clientWidth": 800,
+    "bodyScrollWidth": 800,
+    "bodyClientWidth": 800,
+    "hasHorizontalOverflow": false,
+    "mainHeight": 1280,
+    "supportsDvh": true,
+    "screenshot": "artifacts/responsive/Samsung-Tablet.png"
+  },
+  {
+    "device": "iPhone-15-16",
+    "scrollWidth": 393,
+    "clientWidth": 393,
+    "bodyScrollWidth": 393,
+    "bodyClientWidth": 393,
+    "hasHorizontalOverflow": false,
+    "mainHeight": 852,
+    "supportsDvh": true,
+    "screenshot": "artifacts/responsive/iPhone-15-16.png"
+  },
+  {
+    "device": "iPhone-SE",
+    "scrollWidth": 375,
+    "clientWidth": 375,
+    "bodyScrollWidth": 375,
+    "bodyClientWidth": 375,
+    "hasHorizontalOverflow": false,
+    "mainHeight": 667,
+    "supportsDvh": true,
+    "screenshot": "artifacts/responsive/iPhone-SE.png"
+  },
+  {
+    "device": "iPad-mini",
+    "scrollWidth": 768,
+    "clientWidth": 768,
+    "bodyScrollWidth": 768,
+    "bodyClientWidth": 768,
+    "hasHorizontalOverflow": false,
+    "mainHeight": 1024,
+    "supportsDvh": true,
+    "screenshot": "artifacts/responsive/iPad-mini.png"
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "route": "/login",
+    "finalPath": "/login",
+    "domContentLoaded": 244,
+    "loadEventEnd": 244.60000000149012,
+    "firstContentfulPaint": 348,
+    "largestContentfulPaint": null
+  },
+  {
+    "route": "/",
+    "finalPath": "/login",
+    "domContentLoaded": 179.09999999776483,
+    "loadEventEnd": 179.59999999776483,
+    "firstContentfulPaint": 256,
+    "largestContentfulPaint": null
+  },
+  {
+    "route": "/casos-activos",
+    "finalPath": "/login",
+    "domContentLoaded": 96.19999999925494,
+    "loadEventEnd": 96.60000000149012,
+    "firstContentfulPaint": 128,
+    "largestContentfulPaint": null
+  }
+]
