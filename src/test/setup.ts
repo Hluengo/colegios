@@ -2,6 +2,14 @@ import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import { logger } from '../utils/logger';
 
+// Mock global de supabaseClient para evitar errores de configuración
+vi.mock('../api/supabaseClient', () => ({
+  supabase: {
+    from: vi.fn(() => ({ select: vi.fn(() => Promise.resolve({ data: [], error: null })) })),
+    auth: { getSession: vi.fn(() => Promise.resolve({ data: { session: null }, error: null })) },
+  },
+}));
+
 // Mock de localStorage
 const localStorageMock = {
   getItem: vi.fn(),
