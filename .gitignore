@@ -33,6 +33,13 @@ dist-ssr
 temp_query.js
 temp_query.mjs
 test_alertas.mjs
+.tmp_*
+*.tmp
+*.pid
 
 # Coverage outputs
 coverage/
+
+# Artifacts y reportes de testing
+artifacts/
+!artifacts/.gitkeep
