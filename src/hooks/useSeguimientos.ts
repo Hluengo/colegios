@@ -28,9 +28,7 @@ export function useSeguimientos(caseId) {
         const rows = (await getCaseFollowups(caseId)) || [];
         // Orden cronológico ascendente
         rows.sort((a, b) =>
-          String(a.action_at || a.action_date || '').localeCompare(
-            String(b.action_at || b.action_date || ''),
-          ),
+          String(a.action_date || '').localeCompare(String(b.action_date || '')),
         );
         if (!cancelled) setFollowups(rows);
       } catch (e) {

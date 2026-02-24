@@ -60,11 +60,13 @@ export default function NuevoCasoModal({ onClose, onSaved }) {
         query = query.eq('tenant_id', tenantId);
       }
 
-      const { data, error } = await query.order('course');
+      const res = await query.order('course');
+      const data = res?.data ?? [];
+      const error = res?.error;
 
       if (error) throw error;
 
-      const cursosUnicos = [...new Set(data.map((s) => s.course))].filter(
+      const cursosUnicos = [...new Set((data || []).map((s) => s.course))].filter(
         Boolean,
       );
       setCursos(cursosUnicos);
@@ -93,7 +95,9 @@ export default function NuevoCasoModal({ onClose, onSaved }) {
           query = query.eq('tenant_id', tenantId);
         }
 
-        const { data, error } = await query.order('last_name');
+        const res = await query.order('last_name');
+        const data = res?.data ?? [];
+        const error = res?.error;
 
         if (error) throw error;
 
@@ -142,7 +146,9 @@ export default function NuevoCasoModal({ onClose, onSaved }) {
           query = query.eq('tenant_id', tenantId);
         }
 
-        const { data, error } = await query.order('last_name');
+        const res = await query.order('last_name');
+        const data = res?.data ?? [];
+        const error = res?.error;
 
         if (error) throw error;
         if (mounted) setEstudiantesInv(data || []);

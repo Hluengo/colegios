@@ -4,6 +4,7 @@
 // =====================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { warnMissingTenant } from '../../_shared/tenantHelpers.ts';
 import Stripe from 'https://esm.sh/stripe@13?target=deno';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -108,6 +109,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
 
   if (!tenant) {
     console.log(`Tenant not found for customer: ${customerId}`);
+    await warnMissingTenant('stripe-webhook.handleSubscriptionCreated', { customerId, subscriptionId: subscription.id });
     return;
   }
 
@@ -145,7 +147,11 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     .eq('stripe_customer_id', customerId)
     .single();
 
-  if (!tenant) return;
+  if (!tenant) {
+    console.log(`Tenant not found for customer: ${customerId}`);
+    await warnMissingTenant('stripe-webhook.handleSubscriptionUpdated', { customerId, subscriptionId: subscription.id });
+    return;
+  }
 
   const plan = getPlanFromPrice(subscription.items.data[0]?.price.id);
   const status =
@@ -176,7 +182,11 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     .eq('stripe_customer_id', customerId)
     .single();
 
-  if (!tenant) return;
+  if (!tenant) {
+    console.log(`Tenant not found for customer: ${customerId}`);
+    await warnMissingTenant('stripe-webhook.handleSubscriptionDeleted', { customerId, subscriptionId: subscription.id });
+    return;
+  }
 
   await supabase
     .from('tenants')
@@ -199,7 +209,11 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
     .eq('stripe_customer_id', customerId)
     .single();
 
-  if (!tenant) return;
+  if (!tenant) {
+    console.log(`Tenant not found for customer: ${customerId}`);
+    await warnMissingTenant('stripe-webhook.handlePaymentSucceeded', { customerId, invoiceId: invoice.id });
+    return;
+  }
 
   // Reiniciar estado si estaba suspendido por falta de pago
   await supabase
@@ -225,7 +239,11 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
     .eq('stripe_customer_id', customerId)
     .single();
 
-  if (!tenant) return;
+  if (!tenant) {
+    console.log(`Tenant not found for customer: ${customerId}`);
+    await warnMissingTenant('stripe-webhook.handlePaymentFailed', { customerId, invoiceId: invoice.id });
+    return;
+  }
 
   // Suspender tenant
   await supabase

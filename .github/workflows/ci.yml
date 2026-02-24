@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      xvfb:
+        image: "mviereck/xvfb:latest"
+        options: >-
+          --health-cmd='pgrep Xvfb || exit 1' --health-interval=10s --health-timeout=5s --health-retries=3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install dependencies
+        run: npm ci
+      - name: Run unit tests (vitest)
+        run: npx vitest run --coverage
+      - name: Run Playwright E2E
+        run: |
+          npx playwright install --with-deps
+          npm run e2e

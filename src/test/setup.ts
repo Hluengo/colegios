@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
+import { logger } from '../utils/logger';
 
 // Mock de localStorage
 const localStorageMock = {
@@ -64,6 +65,40 @@ beforeAll(() => {
       return;
     }
     originalError.call(console, ...args);
+  };
+  // Silenciar logger durante tests para evitar output ruidoso
+  logger.debug = vi.fn();
+  logger.info = vi.fn();
+  logger.warn = vi.fn();
+  logger.error = vi.fn();
+  // Filtrar warnings/errores ruidosos conocidos (GoTrue, tenant missing, uploadEvidence)
+  const originalWarn = console.warn;
+  console.warn = (...args) => {
+    try {
+      const first = typeof args[0] === 'string' ? args[0] : JSON.stringify(args[0] || '');
+      if (
+        first.includes('Multiple GoTrueClient instances detected') ||
+        first.includes('missing tenant_id') ||
+        first.includes('uploadEvidenceFiles') ||
+        first.includes('uploadEvidenceFiles - missing tenant_id')
+      ) {
+        return;
+      }
+    } catch (e) {
+      // ignore
+    }
+    return originalWarn.call(console, ...args);
+  };
+
+  // Keep using the original top-level `originalError` to avoid recursive wrapping
+  console.error = (...args) => {
+    try {
+      const first = typeof args[0] === 'string' ? args[0] : JSON.stringify(args[0] || '');
+      if (first.includes('Multiple GoTrueClient instances detected')) return;
+    } catch (e) {
+      // ignore
+    }
+    return originalError.call(console, ...args);
   };
 });
 

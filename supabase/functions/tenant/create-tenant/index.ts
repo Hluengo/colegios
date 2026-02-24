@@ -5,6 +5,7 @@
 // =====================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { warnMissingTenant } from '../../_shared/tenantHelpers.ts';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -62,6 +63,8 @@ Deno.serve(async (req) => {
       .single();
 
     if (profileError || profile?.role !== 'platform_admin') {
+      // Warn about missing or invalid profile for auditing
+      await warnMissingTenant('create-tenant.authProfile', { userId: user.id, profileError: profileError || null });
       return new Response(
         JSON.stringify({ error: 'Forbidden: requires platform_admin' }),
         {
@@ -93,6 +96,8 @@ Deno.serve(async (req) => {
       .single();
 
     if (existing) {
+      // Report possible slug collision attempts
+      await warnMissingTenant('create-tenant.slugExists', { slug: body.slug });
       return new Response(JSON.stringify({ error: 'Slug already exists' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
@@ -367,12 +372,12 @@ async function createDefaultCatalogs(tenantId: string) {
     tenant_id: tenantId,
     is_active: true,
   }));
-
   const { error: catalogsError } = await supabase
     .from('tenant_catalogs')
     .insert(catalogsToInsert);
 
   if (catalogsError) {
     console.error('Error creating default catalogs:', catalogsError);
+    await warnMissingTenant('create-tenant.createDefaultCatalogs', { tenantId, error: String(catalogsError) });
   }
 }

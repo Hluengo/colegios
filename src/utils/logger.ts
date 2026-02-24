@@ -12,7 +12,34 @@ const currentLevel = isDev ? 'debug' : 'warn';
 function formatMessage(level, args) {
   const timestamp = new Date().toISOString();
   const prefix = `[${timestamp}] [${level.toUpperCase()}]`;
-  return args.length === 1 ? [prefix, args[0]] : [prefix, ...args];
+  const formatted = formatArgs(args);
+  return formatted.length === 1 ? [prefix, formatted[0]] : [prefix, ...formatted];
+}
+
+function formatArgs(args) {
+  const seen = new WeakSet();
+  function safeStringify(obj) {
+    try {
+      return JSON.stringify(obj, function (_, value) {
+        if (typeof value === 'object' && value !== null) {
+          if (seen.has(value)) return '[Circular]';
+          seen.add(value);
+        }
+        if (value instanceof Error) {
+          return { name: value.name, message: value.message, stack: value.stack };
+        }
+        return value;
+      });
+    } catch (e) {
+      return String(obj);
+    }
+  }
+
+  return Array.from(args).map((a) => {
+    if (a instanceof Error) return `${a.name}: ${a.message}\n${a.stack}`;
+    if (typeof a === 'object') return safeStringify(a);
+    return a;
+  });
 }
 
 export const logger = {

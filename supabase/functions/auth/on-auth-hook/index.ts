@@ -5,6 +5,7 @@
 // =====================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { inferTenantFromSlug, warnMissingTenant } from '../../_shared/tenantHelpers.ts';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -103,15 +104,11 @@ async function handleNewUser(user: AuthUser) {
     return;
   }
 
-  // Buscar el tenant por slug
-  const { data: tenant, error: tenantError } = await supabase
-    .from('tenants')
-    .select('id')
-    .eq('slug', tenantSlug)
-    .eq('is_active', true)
-    .single();
+  // Inferir tenant por slug usando helper
+  const tenantId = await inferTenantFromSlug(supabase, tenantSlug);
 
-  if (tenantError || !tenant) {
+  if (!tenantId) {
+    await warnMissingTenant('on-auth-hook.handleNewUser', { userId: user.id, tenantSlug });
     console.error(`Tenant not found: ${tenantSlug}`);
     return;
   }
@@ -120,7 +117,7 @@ async function handleNewUser(user: AuthUser) {
   const { count } = await supabase
     .from('tenant_profiles')
     .select('*', { count: 'exact', head: true })
-    .eq('tenant_id', tenant.id);
+    .eq('tenant_id', tenantId);
 
   const role = count === 0 ? 'tenant_admin' : 'user';
 
@@ -129,7 +126,7 @@ async function handleNewUser(user: AuthUser) {
     .from('tenant_profiles')
     .insert({
       id: user.id,
-      tenant_id: tenant.id,
+      tenant_id: tenantId,
       email: user.email,
       full_name: user.user_metadata?.full_name || null,
       role: role,
@@ -142,7 +139,7 @@ async function handleNewUser(user: AuthUser) {
   }
 
   console.log(
-    `Profile created for user ${user.id} with role ${role} in tenant ${tenant.id}`,
+    `Profile created for user ${user.id} with role ${role} in tenant ${tenantId}`,
   );
 }
 
