@@ -26,6 +26,7 @@ import { Bar } from 'recharts/es6/cartesian/Bar';
 import StatCard from '../components/StatCard';
 import UrgentCaseCard from '../components/UrgentCaseCard';
 import { getCases, getAllControlAlertas } from '../api/db';
+import { fetchDashboardDataParallel } from '../api/dashboardParallel';
 import { formatDate } from '../utils/formatDate';
 import { getStudentName } from '../utils/studentName';
 import { onDataUpdated } from '../utils/refreshBus';
@@ -99,29 +100,15 @@ export default function Dashboard() {
   );
 
   const {
-    data: allCases = [],
-    isLoading: loadingCases,
-    error: errorCases,
-    refetch: refetchCases,
+    data: { allCases = [], plazos = [] } = {},
+    isLoading: loading,
+    error: error,
+    refetch: refetchAll,
   } = useQuery({
     queryKey: queryKeys.cases.allByTenant(tenantId),
-    queryFn: () => getCases(null, { tenantId: tenantId || null }),
+    queryFn: () => fetchDashboardDataParallel(tenantId || null),
     enabled: Boolean(tenantId),
   });
-
-  const {
-    data: plazos = [],
-    isLoading: loadingPlazos,
-    error: errorPlazos,
-    refetch: refetchPlazos,
-  } = useQuery({
-    queryKey: queryKeys.alerts.plazos(tenantId),
-    queryFn: () => getAllControlAlertas(tenantId || null),
-    enabled: Boolean(tenantId),
-  });
-
-  const loading = loadingCases || loadingPlazos;
-  const error = errorCases || errorPlazos;
 
   const casosActivos = useMemo(
     () => allCases.filter((c) => getCaseStatus(c, '') !== 'cerrado'),
@@ -157,9 +144,6 @@ export default function Dashboard() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.cases.allByTenant(tenantId),
       });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.alerts.plazos(tenantId),
-      });
     });
     return () => off();
   }, [tenantId, queryClient]);
@@ -171,8 +155,7 @@ export default function Dashboard() {
         title="Error al cargar dashboard"
         message={error?.message || 'Fallo de red'}
         onRetry={() => {
-          refetchCases();
-          refetchPlazos();
+          refetchAll();
         }}
       />
     );

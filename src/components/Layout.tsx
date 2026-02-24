@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import Sidebar from './Sidebar';
-import { Menu } from 'lucide-react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { checkSupabaseHealth } from '../api/health';
@@ -11,6 +10,8 @@ import { emitDataUpdated } from '../utils/refreshBus';
 import { logger } from '../utils/logger';
 import { useTenantTheme } from '../hooks/useTenantTheme';
 import { useTenant } from '../context/TenantContext';
+import LayoutHeader from './LayoutHeader';
+import LayoutContent from './LayoutContent';
 
 export default function Layout() {
   const queryClient = useQueryClient();
@@ -30,16 +31,6 @@ export default function Layout() {
   const prevTenantIdRef = useRef<string | null>(null);
 
   // 🔹 Título dinámico según ruta
-  function getTitle() {
-    if (location.pathname.startsWith('/casos-activos')) return 'Casos Activos';
-    if (location.pathname.startsWith('/seguimientos')) return 'Seguimientos';
-    if (location.pathname.startsWith('/casos-cerrados'))
-      return 'Casos Cerrados';
-    if (location.pathname.startsWith('/admin')) return 'Administración';
-    if (location.pathname.startsWith('/estudiantes')) return 'Estudiantes';
-    if (location.pathname === '/') return 'Inicio';
-    return '';
-  }
 
   useEffect(() => {
     const handleOnline = () => setOnline(true);
@@ -228,48 +219,15 @@ export default function Layout() {
           className="flex-1 flex flex-col relative z-10 m-1.5 ml-0 lg:m-2 lg:ml-0 bg-white/40 backdrop-blur-xl border border-white/50 shadow-glass rounded-2xl lg:rounded-3xl overflow-hidden transition-all duration-300"
         >
           {/* HEADER SUPERIOR */}
-          <div className="flex justify-between items-center px-3 sm:px-5 py-3 shrink-0 border-b border-white/40">
-            {/* Mobile Hamburger */}
-            <button
-              type="button"
-              onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
-              className="lg:hidden p-2 rounded-lg hover:bg-white/60 text-slate-600 tap-target"
-              aria-label={mobileSidebarOpen ? 'Cerrar menú' : 'Abrir menú'}
-            >
-              <Menu size={20} />
-            </button>
+          <LayoutHeader
+            online={online}
+            sbOk={sbOk}
+            mobileSidebarOpen={mobileSidebarOpen}
+            onMobileSidebarToggle={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+          />
 
-            {/* Page Title (Dynamic from route) */}
-            <div className="flex-1 flex items-center gap-3">
-              <h2 className="page-title">
-                {getTitle() || 'Convivencia Escolar'}
-              </h2>
-            </div>
-
-            {/* Status Indicators */}
-            <div className="hidden md:flex items-center gap-3">
-              {online && sbOk ? (
-                <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                  <span className="text-[11px] font-bold text-emerald-700">
-                    Sistema Activo
-                  </span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-red-50 border border-red-100">
-                  <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div>
-                  <span className="text-[11px] font-bold text-red-700">
-                    Desconectado
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* 👇 PAGE CONTENT */}
-          <div className="flex-1 overflow-y-auto px-2.5 sm:px-5 pb-5 pt-3 scroll-smooth">
-            <Outlet />
-          </div>
+          {/* PAGE CONTENT */}
+          <LayoutContent />
         </main>
 
         {/* Mobile sidebar overlay */}
