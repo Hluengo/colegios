@@ -190,7 +190,36 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             alt="Praxia Novus - COLEGIOS482"
             className="h-24 w-auto object-contain drop-shadow-2xl transition-transform duration-300 hover:scale-105"
             onError={(e) => {
-              (e.target as HTMLImageElement).src = BRANDING.logoAuthFallback;
+              const imgElement = e.target as HTMLImageElement;
+              const failedUrl = imgElement.src;
+              const fallbackUrl = BRANDING.logoAuthFallback;
+              
+              // Log en consola para monitoreo
+              console.warn(
+                `[Branding] Logo auth fallido: ${failedUrl}\nUsando fallback: ${fallbackUrl}`,
+                {
+                  timestamp: new Date().toISOString(),
+                  environment: process.env.NODE_ENV,
+                  hostname: window.location.hostname,
+                }
+              );
+              
+              // Cambiar a fallback
+              imgElement.src = fallbackUrl;
+              
+              // Si fallback también falla, log crítico
+              imgElement.onerror = () => {
+                console.error(
+                  `[Branding Critical] Ambos logos fallaron:\n- Primary: ${BRANDING.logoAuth}\n- Fallback: ${fallbackUrl}`,
+                  {
+                    timestamp: new Date().toISOString(),
+                    severity: 'CRITICAL',
+                    action: 'Verificar public/branding/logos existen y son accesibles',
+                  }
+                );
+                // Ocultar la imagen para evitar X visual
+                imgElement.style.display = 'none';
+              };
             }}
           />
         </div>
