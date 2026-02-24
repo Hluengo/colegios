@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { supabase } from '../api/supabaseClient';
+import { BRANDING } from '../config/branding';
 import {
   Eye,
   EyeOff,
@@ -185,12 +186,11 @@ export default function Login({ onLoginSuccess }: LoginProps) {
         {/* Logo con animación de entrada */}
         <div className="relative z-10 animate-fade-in">
           <img
-            src="/branding/praxia-novus-logo-auth-DZuVhk42.png"
+            src={BRANDING.logoAuth}
             alt="Praxia Novus - COLEGIOS482"
             className="h-24 w-auto object-contain drop-shadow-2xl transition-transform duration-300 hover:scale-105"
             onError={(e) => {
-              (e.target as HTMLImageElement).src =
-                '/branding/praxia-novus-logo.svg';
+              (e.target as HTMLImageElement).src = BRANDING.logoAuthFallback;
             }}
           />
         </div>
