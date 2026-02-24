@@ -922,6 +922,23 @@ export async function createStageMessage({
   );
   if (caseErr) throw caseErr;
   const tenantId = caseRow?.tenant_id || null;
+  if (!tenantId) {
+    logger.warn('Creating case comment without tenant_id (case has no tenant)', {
+      caseId,
+    });
+    try {
+      captureMessage('Creating case comment without tenant_id', 'warning');
+    } catch (e) {}
+  }
+  if (!tenantId) {
+    logger.warn('Creating stage message without tenant_id (case has no tenant)', {
+      caseId,
+      processStage,
+    });
+    try {
+      captureMessage('Creating stage message without tenant_id', 'warning');
+    } catch (e) {}
+  }
 
   const { data, error } = await withRetry(() =>
     supabase
@@ -1076,6 +1093,21 @@ export async function addInvolucrado(payload) {
         }
       } catch (e) {
         // ignore inference errors and proceed; insertion will fail/leave tenant_id null
+      }
+    }
+    // Warn if tenant_id still missing after inference
+    if (!toInsert.tenant_id) {
+      logger.warn('Inserting "involucrado" without tenant_id', {
+        payloadPreview: {
+          case_id: toInsert.case_id,
+          role: toInsert.role,
+          name: toInsert.name,
+        },
+      });
+      try {
+        captureMessage('Inserting involucrado without tenant_id', 'warning');
+      } catch (e) {
+        // ignore capture errors
       }
     }
 

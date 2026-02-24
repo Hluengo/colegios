@@ -1,6 +1,7 @@
 import { supabase } from './supabaseClient';
 import { withRetry } from './withRetry';
 import { logger } from '../utils/logger';
+import { captureMessage } from '../lib/sentry';
 
 const BUCKET = 'evidencias';
 
@@ -42,6 +43,12 @@ export async function uploadEvidenceFiles({ caseId, followupId, files = [] }) {
   const realCaseId = followupRow?.case_id;
   const tenantId = followupRow?.tenant_id || null;
   if (!realCaseId) throw new Error('No se pudo resolver case_id del followup');
+  if (!tenantId) {
+    logger.warn('Uploading evidence for followup without tenant_id', { followupId, realCaseId });
+    try {
+      captureMessage('Uploading evidence for followup without tenant_id', 'warning');
+    } catch (e) {}
+  }
 
   if (caseId && caseId !== realCaseId) {
     logger.warn(
@@ -198,6 +205,12 @@ export async function uploadMessageAttachments({
       if (!caseErr) tenantId = caseRow?.tenant_id || null;
     } catch (e) {
       // ignore
+    }
+    if (!tenantId) {
+      logger.warn('Uploading message attachments for case without tenant_id', { messageId, realCaseId });
+      try {
+        captureMessage('Uploading message attachments for case without tenant_id', 'warning');
+      } catch (e) {}
     }
 
     const { data, error: dbErr } = await withRetry(() =>
