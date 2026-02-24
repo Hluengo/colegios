@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   validateCase,
+  validateCaseFilters,
+  validateCaseUpdate,
   validateInvolucrado,
   validateSeguimiento,
   getValidationErrors,
@@ -10,6 +12,7 @@ describe('validation.schemas', () => {
   describe('validateCase', () => {
     it('validates a valid case', () => {
       const validData = {
+        tenant_id: '123e4567-e89b-12d3-a456-426614174001',
         incident_date: '2024-01-15',
         incident_time: '09:30',
         student_id: '123e4567-e89b-12d3-a456-426614174000',
@@ -51,6 +54,7 @@ describe('validation.schemas', () => {
 
     it('validates date format', () => {
       const invalidDate = {
+        tenant_id: '123e4567-e89b-12d3-a456-426614174001',
         incident_date: '15-01-2024',
         incident_time: '09:30',
         student_id: '123e4567-e89b-12d3-a456-426614174000',
@@ -65,6 +69,7 @@ describe('validation.schemas', () => {
 
     it('validates UUID format for student_id', () => {
       const invalidUUID = {
+        tenant_id: '123e4567-e89b-12d3-a456-426614174001',
         incident_date: '2024-01-15',
         incident_time: '09:30',
         student_id: 'not-a-uuid',
@@ -102,6 +107,34 @@ describe('validation.schemas', () => {
     });
   });
 
+  describe('validateCaseUpdate', () => {
+    it('accepts partial updates with valid status enum', () => {
+      const result = validateCaseUpdate({ status: 'Cerrado' });
+      expect(result.success).toBe(true);
+    });
+
+    it('rejects invalid status', () => {
+      const result = validateCaseUpdate({ status: 'Otro' });
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('validateCaseFilters', () => {
+    it('applies defaults for page and pageSize', () => {
+      const result = validateCaseFilters({ status: 'Todos', search: 'abc' });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.page).toBe(1);
+        expect(result.data.pageSize).toBe(10);
+      }
+    });
+
+    it('rejects invalid page values', () => {
+      const result = validateCaseFilters({ page: 0, pageSize: 101 });
+      expect(result.success).toBe(false);
+    });
+  });
+
   describe('validateSeguimiento', () => {
     it('validates required action_type', () => {
       const invalidData = {
@@ -130,6 +163,7 @@ describe('validation.schemas', () => {
 
     it('returns null for successful validation', () => {
       const validData = {
+        tenant_id: '123e4567-e89b-12d3-a456-426614174001',
         incident_date: '2024-01-15',
         incident_time: '09:30',
         student_id: '123e4567-e89b-12d3-a456-426614174000',

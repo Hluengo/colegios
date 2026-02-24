@@ -21,6 +21,7 @@ import {
 import { useTenant } from '../context/TenantContext';
 import { useToast } from '../hooks/useToast';
 import { Button, Input, Select } from '../components/ui';
+import { emitDataUpdated } from '../utils/refreshBus';
 import {
   applyCollegeCatalogs,
   createStudent,
@@ -931,6 +932,7 @@ export default function AdminPanel() {
                           course: '',
                         });
                         await load();
+                        emitDataUpdated();
                       },
                       'Estudiante creado',
                     )
@@ -1006,6 +1008,7 @@ export default function AdminPanel() {
                               await importStudents(tenantId, importPreview);
                               setImportPreview([]);
                               await load();
+                              emitDataUpdated();
                             },
                             `${importPreview.length} estudiantes importados`,
                           )
@@ -1199,6 +1202,7 @@ export default function AdminPanel() {
                                           return;
                                         await deleteStudent(s.id);
                                         await load();
+                                        emitDataUpdated();
                                       },
                                       'Estudiante eliminado',
                                     )
@@ -1235,6 +1239,7 @@ export default function AdminPanel() {
                                             return n;
                                           });
                                           await load();
+                                          emitDataUpdated();
                                         },
                                         'Estudiante actualizado',
                                       )
