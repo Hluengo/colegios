@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../api/supabaseClient';
 import { logger } from '../utils/logger';
 import { useTenant } from '../context/TenantContext';
+import { useCache } from './useCache';
 
 /**
  * Hook para obtener los tipos de acciones desde Supabase
+ * ✨ Con caching: Los datos se cachean por 30 minutos
  * Útil para el catálogo dinámico en formularios de seguimiento
  */
 export default function useActionTypes() {
@@ -13,6 +15,30 @@ export default function useActionTypes() {
   const [actions, setActions] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // useCache: reutiliza datos entre componentes por 30 minutos
+  const { data: cachedTypes, loading: typeLoading } = useCache(
+    async () => {
+      try {
+        const { data, error: fetchError } = await supabase
+          .from('action_types')
+          .select('id, label, sort_order')
+          .eq('is_active', true)
+          .order('sort_order', { ascending: true });
+
+        if (fetchError) {
+          logger.warn('Error fetching action_types:', fetchError);
+          return [];
+        }
+        return data || [];
+      } catch (err) {
+        logger.warn('Error in useActionTypes fetch:', err);
+        return [];
+      }
+    },
+    `action_types_${tenantId || 'global'}`,
+    1800000, // 30 minutos - action_types cambian infrequentemente
+  );
+
   useEffect(() => {
     // No buscar hasta que tengamos tenantId
     if (!tenantId) {
@@ -20,77 +46,26 @@ export default function useActionTypes() {
       return;
     }
 
-    let cancelled = false;
+    const finalLoading = typeLoading || tenantLoading;
+    setLoading(finalLoading);
 
-    async function fetch() {
-      try {
-        const { data, error: fetchError } = await supabase
-          .from('action_types')
-          .select('label, sort_order')
-          .eq('tenant_id', tenantId)
-          .eq('is_active', true)
-          .order('sort_order', { ascending: true });
-
-        if (cancelled) return;
-
-        if (fetchError) {
-          logger.warn(
-            'Error fetching action_types, falling back to defaults:',
-            fetchError,
-          );
-          setActions([
-            'Entrevista',
-            'Notificación',
-            'Recopilación',
-            'Medida',
-            'Indagacion',
-            'Resolucion',
-            'Apelacion',
-            'Monitoreo',
-          ]);
-        } else if (data && data.length > 0) {
-          setActions(data.map((d) => d.label));
-        } else {
-          // Si no hay acción_types para este tenant, usar defaults
-          logger.debug('No action_types found for tenant, using defaults');
-          setActions([
-            'Entrevista',
-            'Notificación',
-            'Recopilación',
-            'Medida',
-            'Indagacion',
-            'Resolucion',
-            'Apelacion',
-            'Monitoreo',
-          ]);
-        }
-      } catch (err) {
-        if (cancelled) return;
-        logger.warn('Error in useActionTypes:', err);
-        // Fallback to defaults
-        setActions([
-          'Entrevista',
-          'Notificación',
-          'Recopilación',
-          'Medida',
-          'Indagacion',
-          'Resolucion',
-          'Apelacion',
-          'Monitoreo',
-        ]);
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
+    if (cachedTypes && cachedTypes.length > 0) {
+      setActions(cachedTypes.map((d: any) => d.label));
+    } else if (!finalLoading) {
+      // Si no hay datos después de cargar, usar defaults
+      logger.debug('No action_types found, using defaults');
+      setActions([
+        'Entrevista',
+        'Notificación',
+        'Recopilación',
+        'Medida',
+        'Indagacion',
+        'Resolucion',
+        'Apelacion',
+        'Monitoreo',
+      ]);
     }
-
-    fetch();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [tenantId, tenantLoading]);
+  }, [tenantId, tenantLoading, cachedTypes, typeLoading]);
 
   return { actions, loading };
 }
