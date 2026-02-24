@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { supabaseClientFullMock } from '../test/supabaseMock';
 
 // Mock withRetry to simply invoke the passed function
 vi.mock('./withRetry', () => ({
@@ -18,18 +19,8 @@ vi.mock('./evidence', () => ({
   getEvidencePublicUrl: vi.fn().mockReturnValue('https://public.example/file'),
 }));
 
-// Mock supabase minimal chainable API for calls used by tests
-vi.mock('./supabaseClient', () => {
-  const from = vi.fn();
-  return {
-    supabase: {
-      from,
-      rpc: vi.fn(),
-      storage: { from: vi.fn() },
-      auth: { signUp: vi.fn() },
-    },
-  };
-});
+// Mock supabase with all required exports
+vi.mock('./supabaseClient', () => supabaseClientFullMock);
 
 import * as db from './db';
 import { supabase } from './supabaseClient';

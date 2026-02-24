@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { supabaseClientFullMock } from '../test/supabaseMock';
 
 // Hoist-safe mock factory for './supabaseClient'. Exposes `__setMocks` to update
 // behavior from tests without relying on top-level variables (avoids hoisting issues).
@@ -15,7 +16,9 @@ vi.mock('./supabaseClient', () => {
     delete: () => ({ eq: async () => ({ error: null }) }),
   });
   return {
+    ...supabaseClientFullMock,
     supabase: {
+      ...supabaseClientFullMock.supabase,
       storage: { from: (b: string) => storageFromImpl(b) },
       from: (t: string) => fromImpl(t),
     },

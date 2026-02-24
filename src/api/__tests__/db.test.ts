@@ -45,6 +45,13 @@ vi.mock('./supabaseClient', () => ({
   supabase: {
     from: (table) => new MockQuery(table),
   },
+  setSessionToken: vi.fn(),
+  getSessionToken: vi.fn(() => null),
+  clearSessionToken: vi.fn(),
+  checkSupabaseConnection: vi.fn().mockResolvedValue(true),
+  subscribeAuthChanges: vi.fn(),
+  unsubscribeAuthChanges: vi.fn(),
+  getSupabaseClient: vi.fn(),
 }));
 
 // Mocks for other dependencies used by db.ts

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { supabaseClientFullMock } from '../test/supabaseMock';
 
 // Mock logger to avoid noise
 vi.mock('../utils/logger', () => ({ logger: { debug: () => {}, warn: () => {}, error: () => {} } }));
@@ -6,12 +7,8 @@ vi.mock('../utils/logger', () => ({ logger: { debug: () => {}, warn: () => {}, e
 // Mock withRetry to invoke directly
 vi.mock('./withRetry', () => ({ withRetry: (fn: any) => fn() }));
 
-// Mock supabase client
-vi.mock('./supabaseClient', () => {
-  const rpc = vi.fn();
-  const from = vi.fn();
-  return { supabase: { rpc, from, storage: { from: vi.fn() }, auth: { signUp: vi.fn() } } };
-});
+// Mock supabase client with all required exports
+vi.mock('./supabaseClient', () => supabaseClientFullMock);
 
 import * as stats from './estadisticas';
 import { supabase } from './supabaseClient';

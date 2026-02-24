@@ -1,13 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { supabaseClientFullMock } from '../test/supabaseMock';
 
 // Mockar el cliente de supabase usado por el módulo
-vi.mock('./supabaseClient', () => {
-  const from = vi.fn();
-  const rpc = vi.fn();
-  const auth = { signUp: vi.fn() };
-  const storage = { from: vi.fn() };
-  return { supabase: { from, rpc, auth, storage } };
-});
+vi.mock('./supabaseClient', () => supabaseClientFullMock);
 
   it('updateTenantBranding actualiza y devuelve datos', async () => {
     const updated = { id: 't1', name: 'Nuevo' };
