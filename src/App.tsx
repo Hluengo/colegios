@@ -11,7 +11,6 @@ import { RequireAuth } from './components/RequireAuth';
 const Layout = lazy(() => import('./components/Layout'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Login = lazy(() => import('./pages/Login'));
-const InicioPage = lazy(() => import('./pages/InicioPage'));
 const CasosActivos = lazy(() => import('./pages/CasosActivos'));
 const CasosCerrados = lazy(() => import('./pages/CasosCerrados'));
 const SeguimientoPage = lazy(() => import('./pages/SeguimientoPage'));
