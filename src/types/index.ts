@@ -19,9 +19,11 @@ export type StudentRole = 'Afectado' | 'Agresor' | 'Testigo' | 'Denunciante';
 
 export interface Student {
   id: string;
+  tenant_id: string;
   first_name: string;
   last_name: string;
   rut: string;
+  level?: string;
   course?: string;
 }
 
@@ -181,6 +183,43 @@ export interface ConductCatalogRow {
   conduct_category: string;
   sort_order?: number;
   active?: boolean;
+}
+
+// ============================================
+// TIPOS PARA CONFIGURACIÓN DE PLAZOS
+// ============================================
+
+export interface StageSlaRow {
+  stage_key: string;
+  days_to_due: number;
+}
+
+export interface ActionType {
+  id: string;
+  label: string;
+  sort_order?: number;
+}
+
+// ============================================
+// TIPOS PARA MENSAJES DE CASO
+// ============================================
+
+export interface CaseMessageAttachment {
+  id: string;
+  message_id: string;
+  file_url: string;
+  file_name: string;
+  file_size?: number;
+}
+
+export interface CaseMessage {
+  id: string;
+  case_id: string;
+  user_id: string;
+  message_text: string;
+  created_at: string;
+  updated_at: string;
+  case_message_attachments?: CaseMessageAttachment[];
 }
 
 // ============================================
