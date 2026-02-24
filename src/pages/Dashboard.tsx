@@ -25,7 +25,6 @@ import { Bar } from 'recharts/es6/cartesian/Bar';
 
 import StatCard from '../components/StatCard';
 import UrgentCaseCard from '../components/UrgentCaseCard';
-import { getCases, getAllControlAlertas } from '../api/db';
 import { fetchDashboardDataParallel } from '../api/dashboardParallel';
 import { formatDate } from '../utils/formatDate';
 import { getStudentName } from '../utils/studentName';
