@@ -905,12 +905,20 @@ export async function createStageMessage({
   if (!processStage) throw new Error('Se requiere processStage');
   if (!message?.trim()) throw new Error('Se requiere mensaje');
 
+  // Propagar tenant_id desde el caso si está disponible
+  const { data: caseRow, error: caseErr } = await withRetry(() =>
+    supabase.from('cases').select('tenant_id').eq('id', caseId).single(),
+  );
+  if (caseErr) throw caseErr;
+  const tenantId = caseRow?.tenant_id || null;
+
   const { data, error } = await withRetry(() =>
     supabase
       .from('case_messages')
       .insert([
         {
           case_id: caseId,
+          tenant_id: tenantId,
           process_stage: processStage,
           body: message.trim(),
           sender_name: author || 'Sistema',
@@ -969,12 +977,20 @@ export async function createCaseComment({
   if (!caseId) throw new Error('Se requiere caseId');
   if (!content?.trim()) throw new Error('Se requiere contenido');
 
+  // Propagar tenant_id desde el caso si está disponible
+  const { data: caseRow, error: caseErr } = await withRetry(() =>
+    supabase.from('cases').select('tenant_id').eq('id', caseId).single(),
+  );
+  if (caseErr) throw caseErr;
+  const tenantId = caseRow?.tenant_id || null;
+
   const { data, error } = await withRetry(() =>
     supabase
       .from('case_messages')
       .insert([
         {
           case_id: caseId,
+          tenant_id: tenantId,
           body: content.trim(),
           parent_id: parentId,
           is_urgent: Boolean(isUrgent),
@@ -1036,6 +1052,19 @@ export async function addInvolucrado(payload) {
         toInsert.metadata = JSON.parse(toInsert.metadata);
       } catch {
         // leave as-is
+      }
+    }
+    // If tenant_id not provided, try to infer it from case_id
+    if (!toInsert.tenant_id && toInsert.case_id) {
+      try {
+        const { data: caseRow, error: caseErr } = await withRetry(() =>
+          supabase.from('cases').select('tenant_id').eq('id', toInsert.case_id).single(),
+        );
+        if (!caseErr && caseRow?.tenant_id) {
+          toInsert.tenant_id = caseRow.tenant_id;
+        }
+      } catch (e) {
+        // ignore inference errors and proceed; insertion will fail/leave tenant_id null
       }
     }
 

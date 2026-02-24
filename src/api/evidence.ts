@@ -34,12 +34,13 @@ export async function uploadEvidenceFiles({ caseId, followupId, files = [] }) {
   const { data: followupRow, error: fuErr } = await withRetry(() =>
     supabase
       .from('case_followups')
-      .select('case_id')
+      .select('case_id, tenant_id')
       .eq('id', followupId)
       .single(),
   );
   if (fuErr) throw fuErr;
   const realCaseId = followupRow?.case_id;
+  const tenantId = followupRow?.tenant_id || null;
   if (!realCaseId) throw new Error('No se pudo resolver case_id del followup');
 
   if (caseId && caseId !== realCaseId) {
@@ -77,6 +78,7 @@ export async function uploadEvidenceFiles({ caseId, followupId, files = [] }) {
         .insert([
           {
             case_id: realCaseId,
+            tenant_id: tenantId,
             followup_id: followupId,
             storage_bucket: BUCKET,
             storage_path: path,
@@ -187,12 +189,24 @@ export async function uploadMessageAttachments({
 
     if (upErr) throw upErr;
 
+    // Intentar resolver tenant_id del caso para propagarlo a attachments
+    let tenantId = null;
+    try {
+      const { data: caseRow, error: caseErr } = await withRetry(() =>
+        supabase.from('cases').select('tenant_id').eq('id', realCaseId).single(),
+      );
+      if (!caseErr) tenantId = caseRow?.tenant_id || null;
+    } catch (e) {
+      // ignore
+    }
+
     const { data, error: dbErr } = await withRetry(() =>
       supabase
         .from('case_message_attachments')
         .insert([
           {
             case_id: realCaseId,
+            tenant_id: tenantId,
             message_id: messageId,
             storage_bucket: BUCKET,
             storage_path: path,
