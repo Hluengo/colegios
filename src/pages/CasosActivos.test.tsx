@@ -2,7 +2,9 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
-import CasosActivos from './CasosActivos';
+import * as Mod from './CasosActivos';
+const CasosActivos = (Mod as any).default || (Mod as any).CasosActivos || Mod;
+
 
 vi.mock('../api/db', () => ({
   getCasesPage: vi.fn(async () => ({

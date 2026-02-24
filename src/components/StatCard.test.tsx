@@ -2,7 +2,9 @@ import type { ReactNode } from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
-import StatCard from './StatCard';
+import * as Mod from './StatCard';
+const StatCard = (Mod as any).default || (Mod as any).StatCard || Mod;
+
 
 // Wrapper para provide context
 interface TestWrapperProps {

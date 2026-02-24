@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import NuevoCasoModal from './NuevoCasoModal';
+
 
 vi.mock('../context/TenantContext', () => ({
   useTenant: () => ({ tenant: { id: 't-1' }, isLoading: false }),
@@ -8,24 +8,43 @@ vi.mock('../context/TenantContext', () => ({
 
 // Mock supabase chainable calls
 vi.mock('../api/supabaseClient', () => {
-  const mockOrder = vi.fn();
+  // Mock supabase with deterministic responses based on query args
+  const supabase = {
+    from: () => ({
+      select: (cols: any) => {
+        const filters: Array<[string, any]> = [];
 
-  function makeChain() {
-    return {
-      order: mockOrder,
-      eq: () => makeChain(),
-      not: () => makeChain(),
-      select: () => makeChain(),
-    };
-  }
+        const obj: any = {
+          not: () => obj,
+          eq: (field: string, val: any) => {
+            filters.push([field, val]);
+            return obj;
+          },
+          order: async (by: string) => {
+            // cargarCursos -> select('course').not(...).order('course')
+            if (typeof cols === 'string' && cols.includes('course') && by === 'course') {
+              return { data: [{ course: '1A' }, { course: null }], error: null };
+            }
 
-  const mockSelect = vi.fn(() => makeChain());
-  const mockFrom = vi.fn(() => ({ select: mockSelect }));
+            // cargarEstudiantes -> if filters include course='1A', return students
+            const hasCourseFilter = filters.some(([f, v]) => f === 'course' && v === '1A');
+            if (hasCourseFilter && by === 'last_name') {
+              return {
+                data: [{ id: 's1', first_name: 'Ana', last_name: 'Perez', course: '1A' }],
+                error: null,
+              };
+            }
 
-  return {
-    supabase: { from: mockFrom },
-    __mocks: { mockOrder, mockFrom, mockSelect },
-  };
+            return { data: [], error: null };
+          },
+        };
+
+        return obj;
+      },
+    }),
+  } as any;
+
+  return { supabase };
 });
 
 vi.mock('../api/db', () => ({
@@ -58,9 +77,10 @@ describe('NuevoCasoModal', () => {
   });
 
   it('guarda caso con tenant_id y emite refresh', async () => {
-    // Prepare supabase mocks: first call returns courses, second returns students
-    supClient.__mocks.mockOrder.mockResolvedValueOnce({ data: [{ course: '1A' }, { course: null }], error: null });
-    supClient.__mocks.mockOrder.mockResolvedValueOnce({ data: [{ id: 's1', first_name: 'Ana', last_name: 'Perez', course: '1A' }], error: null });
+    // Import the component after setting up mocks so module imports pick up the mocks
+    const Mod = (await import('./NuevoCasoModal')) as any;
+    const NuevoCasoModal = Mod.default || Mod.NuevoCasoModal || Mod;
+    // No-op: supabase mock responds deterministically based on query args
 
     const onSaved = vi.fn();
     const onClose = vi.fn();
@@ -73,9 +93,13 @@ describe('NuevoCasoModal', () => {
     const estudianteSelect = selects[1];
 
     fireEvent.change(cursoSelect, { target: { value: '1A' } });
-    // Wait for estudiantes to load
-    await waitFor(() => expect(estudianteSelect.options.length).toBeGreaterThan(1));
+    // Esperar a que la lista de estudiantes se renderice y luego seleccionar
+    await screen.findByText('Ana Perez');
     fireEvent.change(estudianteSelect, { target: { value: 's1' } });
+
+    // Debug: valores seleccionados
+    // eslint-disable-next-line no-console
+    console.log('DEBUG selects', { curso: (cursoSelect as any).value, estudiante: (estudianteSelect as any).value });
 
     // Set fecha and hora using the shortcut buttons
     const hoyBtn = screen.getByText('Hoy');
@@ -87,9 +111,14 @@ describe('NuevoCasoModal', () => {
     const tipoBtn = await screen.findByText('Leve');
     fireEvent.click(tipoBtn);
 
-    // Click save
+    // Click save (wait until enabled)
     const saveBtn = screen.getByText('Guardar Caso');
+    await waitFor(() => expect(saveBtn).not.toBeDisabled());
     fireEvent.click(saveBtn);
+
+    // Debug info (helps diagnose intermittent failures)
+    // eslint-disable-next-line no-console
+    console.log('DEBUG createCase.calls=', (createCase as any).mock.calls.length);
 
     await waitFor(() => expect(createCase).toHaveBeenCalled());
 
