@@ -18,7 +18,7 @@ export async function updateTenantBranding(
     .from('tenants')
     .update(payload)
     .eq('id', tenantId)
-    .select('*')
+    .select('id, name, slug, email, is_active, created_at, updated_at')
     .single();
   if (error) throw error;
   return data;
@@ -51,7 +51,7 @@ export async function uploadTenantBrandAsset(
 export async function listTenantSettings(tenantId: string) {
   const { data, error } = await supabase
     .from('tenant_settings')
-    .select('*')
+    .select('id, tenant_id, setting_key, setting_value, created_at')
     .eq('tenant_id', tenantId)
     .order('setting_key', { ascending: true });
   if (error) throw error;
@@ -73,7 +73,7 @@ export async function upsertTenantSetting(
       },
       { onConflict: 'tenant_id,setting_key' },
     )
-    .select('*')
+    .select('id, tenant_id, setting_key, setting_value, created_at')
     .single();
   if (error) throw error;
   return data;
@@ -113,7 +113,7 @@ export async function createStudent(
       course: payload.course || null,
       level: payload.level || null,
     })
-    .select('*')
+    .select('id, tenant_id, first_name, last_name, rut, course, level, created_at')
     .single();
   if (error) throw error;
   return data;
@@ -127,7 +127,7 @@ export async function updateStudent(
     .from('students')
     .update(payload)
     .eq('id', studentId)
-    .select('*')
+    .select('id, tenant_id, first_name, last_name, rut, course, level, created_at, updated_at')
     .single();
   if (error) throw error;
   return data;
@@ -165,7 +165,7 @@ export async function importStudents(
   const { data, error } = await supabase
     .from('students')
     .insert(records)
-    .select();
+    .select('id, tenant_id, first_name, last_name, rut, course, level, created_at');
   if (error) throw error;
   return data;
 }
@@ -173,7 +173,7 @@ export async function importStudents(
 export async function listConductTypes(_tenantId: string) {
   const { data, error } = await supabase
     .from('conduct_types')
-    .select('*')
+    .select('id, key, label, color, sort_order, active, created_at')
     .order('sort_order', { ascending: true });
   if (error) throw error;
   return data || [];
@@ -194,7 +194,7 @@ export async function upsertConductType(
   const { data, error } = await supabase
     .from('conduct_types')
     .upsert(row, { onConflict: 'key' })
-    .select('*')
+    .select('id, key, label, color, sort_order, active')
     .single();
   if (error) throw error;
   return data;
@@ -208,7 +208,7 @@ export async function deleteConductType(id: string) {
 export async function listConductCatalog(_tenantId: string) {
   const { data, error } = await supabase
     .from('conduct_catalog')
-    .select('*')
+    .select('id, conduct_type, conduct_category, sort_order, active, created_at')
     .order('conduct_type', { ascending: true })
     .order('sort_order', { ascending: true });
   if (error) throw error;
@@ -229,7 +229,7 @@ export async function upsertConductCatalogRow(
   const { data, error } = await supabase
     .from('conduct_catalog')
     .upsert(row, { onConflict: 'conduct_type,conduct_category' })
-    .select('*')
+    .select('id, conduct_type, conduct_category, sort_order, active')
     .single();
   if (error) throw error;
   return data;
@@ -246,7 +246,7 @@ export async function deleteConductCatalogRow(id: string) {
 export async function listActionTypes(tenantId: string) {
   const { data, error } = await supabase
     .from('action_types')
-    .select('*')
+    .select('id, tenant_id, key, label, description, sort_order, is_active, created_at')
     .eq('tenant_id', tenantId)
     .order('sort_order', { ascending: true });
   if (error) throw error;
@@ -269,7 +269,7 @@ export async function upsertActionType(
   const { data, error } = await supabase
     .from('action_types')
     .upsert(row, { onConflict: 'tenant_id,key' })
-    .select('*')
+    .select('id, tenant_id, key, label, description, sort_order, is_active')
     .single();
   if (error) throw error;
   return data;

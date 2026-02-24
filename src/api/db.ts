@@ -1351,7 +1351,7 @@ export async function getInvolucrados(caseId) {
   if (!caseId) return [];
   const { data, error } = await supabase
     .from('involucrados')
-    .select('*')
+    .select('id, case_id, student_id, nombre, rol, metadata, created_at')
     .eq('case_id', caseId)
     .order('created_at', { ascending: true });
 
