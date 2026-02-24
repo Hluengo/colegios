@@ -33,3 +33,6 @@ dist-ssr
 temp_query.js
 temp_query.mjs
 test_alertas.mjs
+
+# Coverage outputs
+coverage/
