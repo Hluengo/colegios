@@ -1,7 +1,7 @@
 import { supabase } from './supabaseClient';
 import { withRetry } from './withRetry';
 import { logger } from '../utils/logger';
-import { captureMessage } from '../lib/sentry';
+import { inferTenantFromCase, warnMissingTenant } from './tenantHelpers';
 
 const BUCKET = 'evidencias';
 
@@ -43,12 +43,7 @@ export async function uploadEvidenceFiles({ caseId, followupId, files = [] }) {
   const realCaseId = followupRow?.case_id;
   const tenantId = followupRow?.tenant_id || null;
   if (!realCaseId) throw new Error('No se pudo resolver case_id del followup');
-  if (!tenantId) {
-    logger.warn('Uploading evidence for followup without tenant_id', { followupId, realCaseId });
-    try {
-      captureMessage('Uploading evidence for followup without tenant_id', 'warning');
-    } catch (e) {}
-  }
+  if (!tenantId) warnMissingTenant('uploadEvidenceFiles', { followupId, realCaseId });
 
   if (caseId && caseId !== realCaseId) {
     logger.warn(
@@ -197,21 +192,8 @@ export async function uploadMessageAttachments({
     if (upErr) throw upErr;
 
     // Intentar resolver tenant_id del caso para propagarlo a attachments
-    let tenantId = null;
-    try {
-      const { data: caseRow, error: caseErr } = await withRetry(() =>
-        supabase.from('cases').select('tenant_id').eq('id', realCaseId).single(),
-      );
-      if (!caseErr) tenantId = caseRow?.tenant_id || null;
-    } catch (e) {
-      // ignore
-    }
-    if (!tenantId) {
-      logger.warn('Uploading message attachments for case without tenant_id', { messageId, realCaseId });
-      try {
-        captureMessage('Uploading message attachments for case without tenant_id', 'warning');
-      } catch (e) {}
-    }
+    const tenantId = await inferTenantFromCase(realCaseId);
+    if (!tenantId) warnMissingTenant('uploadMessageAttachments', { messageId, realCaseId });
 
     const { data, error: dbErr } = await withRetry(() =>
       supabase

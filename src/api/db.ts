@@ -1,7 +1,7 @@
 import { supabase } from './supabaseClient';
 import { withRetry } from './withRetry';
 import { logger } from '../utils/logger';
-import { captureMessage } from '../lib/sentry';
+import { inferTenantFromCase, warnMissingTenant } from './tenantHelpers';
 import { getEvidencePublicUrl, getEvidenceSignedUrl } from './evidence';
 import { casoSchema } from '../utils/validation.schemas';
 
@@ -712,11 +712,7 @@ export async function createFollowup(input) {
       .split('T')[0];
 
     // Resolver tenant_id del caso para propagarlo al followup
-    const { data: caseRow, error: caseErr } = await withRetry(() =>
-      supabase.from('cases').select('tenant_id').eq('id', caseId).single(),
-    );
-    if (caseErr) throw caseErr;
-    const tenantId = caseRow?.tenant_id || null;
+    const tenantId = await inferTenantFromCase(caseId);
 
     const row = {
       case_id: caseId,
@@ -917,28 +913,8 @@ export async function createStageMessage({
   if (!message?.trim()) throw new Error('Se requiere mensaje');
 
   // Propagar tenant_id desde el caso si está disponible
-  const { data: caseRow, error: caseErr } = await withRetry(() =>
-    supabase.from('cases').select('tenant_id').eq('id', caseId).single(),
-  );
-  if (caseErr) throw caseErr;
-  const tenantId = caseRow?.tenant_id || null;
-  if (!tenantId) {
-    logger.warn('Creating case comment without tenant_id (case has no tenant)', {
-      caseId,
-    });
-    try {
-      captureMessage('Creating case comment without tenant_id', 'warning');
-    } catch (e) {}
-  }
-  if (!tenantId) {
-    logger.warn('Creating stage message without tenant_id (case has no tenant)', {
-      caseId,
-      processStage,
-    });
-    try {
-      captureMessage('Creating stage message without tenant_id', 'warning');
-    } catch (e) {}
-  }
+  const tenantId = await inferTenantFromCase(caseId);
+  if (!tenantId) warnMissingTenant('createStageMessage', { caseId, processStage });
 
   const { data, error } = await withRetry(() =>
     supabase
@@ -1006,11 +982,7 @@ export async function createCaseComment({
   if (!content?.trim()) throw new Error('Se requiere contenido');
 
   // Propagar tenant_id desde el caso si está disponible
-  const { data: caseRow, error: caseErr } = await withRetry(() =>
-    supabase.from('cases').select('tenant_id').eq('id', caseId).single(),
-  );
-  if (caseErr) throw caseErr;
-  const tenantId = caseRow?.tenant_id || null;
+  const tenantId = await inferTenantFromCase(caseId);
 
   const { data, error } = await withRetry(() =>
     supabase
@@ -1085,14 +1057,10 @@ export async function addInvolucrado(payload) {
     // If tenant_id not provided, try to infer it from case_id
     if (!toInsert.tenant_id && toInsert.case_id) {
       try {
-        const { data: caseRow, error: caseErr } = await withRetry(() =>
-          supabase.from('cases').select('tenant_id').eq('id', toInsert.case_id).single(),
-        );
-        if (!caseErr && caseRow?.tenant_id) {
-          toInsert.tenant_id = caseRow.tenant_id;
-        }
+        const inferred = await inferTenantFromCase(toInsert.case_id);
+        if (inferred) toInsert.tenant_id = inferred;
       } catch (e) {
-        // ignore inference errors and proceed; insertion will fail/leave tenant_id null
+        // ignore inference errors and proceed
       }
     }
     // Warn if tenant_id still missing after inference
