@@ -1,6 +1,7 @@
 import { supabase } from './supabaseClient';
 import { withRetry } from './withRetry';
 import { logger } from '../utils/logger';
+import { captureMessage } from '../lib/sentry';
 import { getEvidencePublicUrl, getEvidenceSignedUrl } from './evidence';
 import { casoSchema } from '../utils/validation.schemas';
 
@@ -504,6 +505,16 @@ export async function createCase(payload) {
       throw new Error('Datos inválidos para crear caso');
     }
     const insertData = buildCaseInsert(parsed.data);
+    // Alertar si no se está insertando con tenant_id (posible origen de datos huérfanos)
+    if (!insertData.tenant_id) {
+      const preview = {
+        student_id: insertData.student_id,
+        incident_date: insertData.incident_date,
+        course_incident: insertData.course_incident,
+      };
+      logger.warn('Insertando caso sin tenant_id', preview);
+      captureMessage('Insertando caso sin tenant_id', 'warning');
+    }
     logger.debug('💾 Insertando en Supabase:', insertData);
     const { data, error } = await withRetry(() =>
       supabase
