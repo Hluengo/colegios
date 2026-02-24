@@ -15,6 +15,20 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Create .env.local from secrets
+        run: |
+          cat > .env.local << EOF
+          VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_APP_NAME=Institución Demo - COLEGIOS482
+          VITE_SCHOOL_NAME=Colegio Demo Gestión
+          VITE_LOGO_APP=/branding/praxia-novus-logo.svg
+          VITE_LOGO_PDF=/branding/generic_logo.png
+          VITE_LOGO_AUTH=/branding/praxia-novus-logo-auth-DZuVhk42.png
+          VITE_LOGO_AUTH_FALLBACK=/branding/generic_logo.png
+          VITE_FAVICON=/branding/veritas.jpg
+          VITE_DEBUG_MODE=false
+          EOF
       - name: Install dependencies
         run: npm ci
       - name: Install Xvfb
