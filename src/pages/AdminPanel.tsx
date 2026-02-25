@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
 import {
   BookOpen,
   Clock3,
@@ -3402,6 +3402,7 @@ function SlaRow({
   const [days, setDays] = useState(sla.days_to_due || 0);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const handleSave = async () => {
     setSaving(true);
@@ -3409,10 +3410,13 @@ function SlaRow({
     setSaving(false);
   };
 
-  const handleDelete = async () => {
-    setDeleting(true);
-    await onDelete();
-    setDeleting(false);
+  const handleDelete = () => {
+    // Don't block UI with confirm - handle in non-urgent transition
+    startTransition(async () => {
+      setDeleting(true);
+      await onDelete();
+      setDeleting(false);
+    });
   };
 
   return (
