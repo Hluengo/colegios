@@ -39,14 +39,10 @@ export const createChainableMock = (data: any = [], error: any = null) => {
     filter: vi.fn().mockReturnThis(),
     order: vi.fn().mockReturnThis(),
     limit: vi.fn().mockReturnThis(),
-    range: vi.fn().mockReturnThis(),
     single: vi.fn().mockResolvedValue({ data, error }),
     maybeSingle: vi.fn().mockResolvedValue({ data, error }),
-    then: vi.fn((resolve) => resolve({ data, error })),
+    then: vi.fn((resolve) => resolve({ data, error, count: data?.length || 0 })),
   };
-
-  // Also make it a thenable (promise-like) for direct await
-  chain.then = vi.fn((resolve) => resolve({ data, error, count: data?.length || 0 }));
   
   return chain;
 };

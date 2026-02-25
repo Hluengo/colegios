@@ -44,7 +44,17 @@ vi.mock('../api/supabaseClient', () => {
   function makeChain() { return { order: mockOrder, eq: () => makeChain(), not: () => makeChain(), select: () => makeChain() }; }
   const mockSelect = vi.fn(() => makeChain());
   const mockFrom = vi.fn(() => ({ select: mockSelect }));
-  return { supabase: { from: mockFrom }, __mocks: { mockOrder, mockFrom, mockSelect } };
+  return {
+    supabase: { from: mockFrom },
+    subscribeAuthChanges: vi.fn(),
+    unsubscribeAuthChanges: vi.fn(),
+    setSessionToken: vi.fn(),
+    getSessionToken: vi.fn(() => null),
+    clearSessionToken: vi.fn(),
+    checkSupabaseConnection: vi.fn().mockResolvedValue(true),
+    getSupabaseClient: vi.fn(),
+    __mocks: { mockOrder, mockFrom, mockSelect },
+  };
 });
 
 function createTestQueryClient() {

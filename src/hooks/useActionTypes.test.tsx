@@ -21,6 +21,13 @@ vi.mock('../api/supabaseClient', () => {
     supabase: {
       from: mockFrom,
     },
+    subscribeAuthChanges: vi.fn(),
+    unsubscribeAuthChanges: vi.fn(),
+    setSessionToken: vi.fn(),
+    getSessionToken: vi.fn(() => null),
+    clearSessionToken: vi.fn(),
+    checkSupabaseConnection: vi.fn().mockResolvedValue(true),
+    getSupabaseClient: vi.fn(),
     __mocks: { mockOrder, mockFrom, mockSelect, mockEq1, mockEq2 },
   };
 });

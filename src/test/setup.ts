@@ -3,12 +3,10 @@ import { vi } from 'vitest';
 import { logger } from '../utils/logger';
 
 // Mock global de supabaseClient para evitar errores de configuración
-vi.mock('../api/supabaseClient', () => ({
-  supabase: {
-    from: vi.fn(() => ({ select: vi.fn(() => Promise.resolve({ data: [], error: null })) })),
-    auth: { getSession: vi.fn(() => Promise.resolve({ data: { session: null }, error: null })) },
-  },
-}));
+// Import the full mock to ensure all exports are available
+import { supabaseClientFullMock } from './supabaseMock';
+
+vi.mock('../api/supabaseClient', () => supabaseClientFullMock);
 
 // Mock de localStorage
 const localStorageMock = {
