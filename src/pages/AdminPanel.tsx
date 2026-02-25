@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useTransition } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   BookOpen,
   Clock3,
@@ -3402,7 +3402,6 @@ function SlaRow({
   const [days, setDays] = useState(sla.days_to_due || 0);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [isPending, startTransition] = useTransition();
 
   const handleSave = async () => {
     setSaving(true);
@@ -3410,13 +3409,21 @@ function SlaRow({
     setSaving(false);
   };
 
-  const handleDelete = () => {
-    // Don't block UI with confirm - handle in non-urgent transition
-    startTransition(async () => {
-      setDeleting(true);
+  const handleDelete = async () => {
+    // Execute confirm synchronously BEFORE starting delete
+    if (
+      !window.confirm(
+        `¿Eliminar SLA de etapa "${sla.stage_key}"? Esta acción no se puede deshacer.`,
+      )
+    )
+      return;
+
+    setDeleting(true);
+    try {
       await onDelete();
+    } finally {
       setDeleting(false);
-    });
+    }
   };
 
   return (
