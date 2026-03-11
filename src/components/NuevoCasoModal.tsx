@@ -135,13 +135,6 @@ export default function NuevoCasoModal({ onClose, onSaved }) {
     }
   }, [estudianteId, estudiantes]);
 
-  // Limpiar nombreInv cuando cambia el curso
-  useEffect(() => {
-    setNombreInv('');
-    setEstudianteId('');
-    setRolEstudiante('');
-  }, [curso]);
-
   // cargar estudiantes para la sección Involucrados por curso seleccionado
   useEffect(() => {
     let mounted = true;
@@ -435,7 +428,12 @@ export default function NuevoCasoModal({ onClose, onSaved }) {
                 </label>
                 <select
                   value={curso}
-                  onChange={(e) => setCurso(e.target.value)}
+                  onChange={(e) => {
+                    setCurso(e.target.value);
+                    setNombreInv('');
+                    setEstudianteId('');
+                    setRolEstudiante('');
+                  }}
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-200"
                 >
                   <option value="">Selecciona un curso</option>

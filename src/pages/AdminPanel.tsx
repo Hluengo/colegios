@@ -575,11 +575,14 @@ export default function AdminPanel() {
     }
   }, [isPlatformAdmin, tab]);
 
-  useEffect(() => {
+  const handleCatalogTabChange = (
+    nextTab: 'types' | 'catalog' | 'actions' | 'sla',
+  ) => {
+    setCatalogTab(nextTab);
     setCatalogImportPreview([]);
     setCatalogImportHeaders([]);
     setCatalogImportFileName('');
-  }, [catalogTab]);
+  };
 
   const visibleTabs = useMemo(
     () => TABS.filter((t) => t.id !== 'platform' || isPlatformAdmin),
@@ -1986,25 +1989,25 @@ export default function AdminPanel() {
               {/* Tabs de catálogos */}
               <div className="flex gap-2 border-b border-slate-200 pb-2">
                 <button
-                  onClick={() => setCatalogTab('types')}
+                  onClick={() => handleCatalogTabChange('types')}
                   className={`rounded-lg px-3 py-1.5 text-sm font-medium ${catalogTab === 'types' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'}`}
                 >
                   Tipos de Conducta ({conductTypes.length})
                 </button>
                 <button
-                  onClick={() => setCatalogTab('catalog')}
+                  onClick={() => handleCatalogTabChange('catalog')}
                   className={`rounded-lg px-3 py-1.5 text-sm font-medium ${catalogTab === 'catalog' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'}`}
                 >
                   Catálogo ({conductCatalog.length})
                 </button>
                 <button
-                  onClick={() => setCatalogTab('actions')}
+                  onClick={() => handleCatalogTabChange('actions')}
                   className={`rounded-lg px-3 py-1.5 text-sm font-medium ${catalogTab === 'actions' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'}`}
                 >
                   Tipos de Acción ({actionTypes.length})
                 </button>
                 <button
-                  onClick={() => setCatalogTab('sla')}
+                  onClick={() => handleCatalogTabChange('sla')}
                   className={`rounded-lg px-3 py-1.5 text-sm font-medium ${catalogTab === 'sla' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'}`}
                 >
                   SLA Etapas ({stageSla.length})
