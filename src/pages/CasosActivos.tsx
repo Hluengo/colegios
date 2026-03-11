@@ -23,6 +23,7 @@ import { Button } from '../components/ui';
 import CaseListHeader from '../components/CaseListHeader';
 import CaseListItem from '../components/CaseListItem';
 import PaginationControls from '../components/PaginationControls';
+import PageHeader from '../components/PageHeader';
 
 export default function CasosActivos() {
   const navigate = useNavigate();
@@ -248,25 +249,19 @@ export default function CasosActivos() {
         </div>
       )}
 
-      {/* Header with title and new case button */}
-      <div className="flex items-center justify-between px-2 mb-4">
-        <div className="flex items-center gap-3 min-w-0">
-          <h2 className="text-[1.375rem] font-semibold text-slate-900 tracking-tight truncate">
-            Listado de Casos Activos
-          </h2>
-          <span className="text-xs font-bold px-2 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-            {totalCasos} casos
-          </span>
-        </div>
-
-        <Button
-          onClick={handleNewCase}
-          leftIcon={<Plus size={18} />}
-          className="shadow-soft"
-        >
-          <span className="hidden sm:inline">Nuevo Caso</span>
-        </Button>
-      </div>
+      <PageHeader
+        title="Listado de Casos Activos"
+        badgeText={`${totalCasos} casos`}
+        actions={
+          <Button
+            onClick={handleNewCase}
+            leftIcon={<Plus size={18} />}
+            className="shadow-soft w-full sm:w-auto"
+          >
+            Nuevo Caso
+          </Button>
+        }
+      />
 
       {/* Search and filters header */}
       <CaseListHeader
@@ -276,7 +271,6 @@ export default function CasosActivos() {
         onEstadoChange={handleEstadoChange}
         pageSize={pageSize}
         onPageSizeChange={handlePageSizeChange}
-        onNewClick={handleNewCase}
         filterOptions={[
           { label: 'Todos', value: 'Todos' },
           { label: 'Reportado', value: 'Reportado' },
@@ -389,6 +383,18 @@ export default function CasosActivos() {
         <CaseDetailModal
           caso={selectedCaso}
           onClose={() => setSelectedCaso(null)}
+          onUpdated={(updatedCase) => {
+            setSelectedCaso(updatedCase);
+            queryClient.invalidateQueries({
+              queryKey: queryKeys.cases.activos(
+                tenantId,
+                page,
+                pageSize,
+                estadoFiltro,
+                search || '',
+              ),
+            });
+          }}
         />
       )}
 

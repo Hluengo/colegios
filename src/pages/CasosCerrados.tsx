@@ -13,6 +13,7 @@ import InlineError from '../components/InlineError';
 import usePersistedState from '../hooks/usePersistedState';
 import { useTenant } from '../context/TenantContext';
 import { queryKeys } from '../lib/queryClient';
+import PageHeader from '../components/PageHeader';
 
 export default function CasosCerrados() {
   const queryClient = useQueryClient();
@@ -120,16 +121,7 @@ export default function CasosCerrados() {
 
   return (
     <div className="h-full p-2">
-      <div className="flex items-center justify-between px-2 mb-4">
-        <div className="flex items-center gap-3 min-w-0">
-          <h2 className="text-[1.375rem] font-semibold text-slate-900 tracking-tight truncate">
-            Archivo Histórico
-          </h2>
-          <span className="text-xs font-bold px-2 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-            {totalCasos} casos
-          </span>
-        </div>
-      </div>
+      <PageHeader title="Archivo Histórico" badgeText={`${totalCasos} casos`} />
 
       <div className="flex flex-col sm:flex-row gap-3 px-2 mb-4">
         <input

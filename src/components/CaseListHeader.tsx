@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
-import { Plus, X } from 'lucide-react';
-import { Input, Select, Button } from './ui';
+import { X } from 'lucide-react';
+import { Input, Select } from './ui';
 
 type CaseListHeaderProps = {
   search: string;
@@ -9,7 +9,6 @@ type CaseListHeaderProps = {
   onEstadoChange?: (value: string) => void;
   pageSize?: number;
   onPageSizeChange?: (size: number) => void;
-  onNewClick?: () => void;
   filterOptions?: Array<{ label: string; value: string }>;
 };
 
@@ -21,7 +20,6 @@ const CaseListHeader = React.memo(
     onEstadoChange,
     pageSize = 10,
     onPageSizeChange,
-    onNewClick,
     filterOptions = [],
   }: CaseListHeaderProps) => {
     const handleClearSearch = useCallback(() => {
@@ -30,16 +28,6 @@ const CaseListHeader = React.memo(
 
     return (
       <div className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <h1 className="text-2xl font-bold text-slate-900">Casos</h1>
-          {onNewClick && (
-            <Button onClick={onNewClick} className="gap-2">
-              <Plus size={16} />
-              Nuevo Caso
-            </Button>
-          )}
-        </div>
-
         <div className="flex gap-3 flex-col sm:flex-row">
           <Input
             type="text"

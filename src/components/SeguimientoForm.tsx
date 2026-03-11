@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { createFollowup, getResponsables } from '../api/db';
+import { createFollowup, getResponsables, updateFollowup } from '../api/db';
 import { uploadEvidenceFiles } from '../api/evidence';
 import { DUE_PROCESS_STAGES } from '../constants/dueProcessStages';
 import { useToast } from '../hooks/useToast';
@@ -15,11 +15,23 @@ function SeguimientoForm({
   caseId,
   defaultStage,
   stages = DUE_PROCESS_STAGES,
+  mode = 'create',
+  followupId,
+  initialValues,
   onSaved,
 }: {
   caseId: string;
   defaultStage?: string;
   stages?: string[];
+  mode?: 'create' | 'edit';
+  followupId?: string;
+  initialValues?: {
+    action_type?: string;
+    process_stage?: string;
+    responsible?: string;
+    detail?: string;
+    observations?: string;
+  };
   onSaved?: () => void;
 }) {
   const { push } = useToast();
@@ -28,15 +40,26 @@ function SeguimientoForm({
   const [submitting, setSubmitting] = useState(false);
 
   const [form, setForm] = useState({
-    action_type: '',
-    process_stage: defaultStage || '',
-    responsible: '',
-    detail: '',
-    observations: '',
+    action_type: initialValues?.action_type || '',
+    process_stage: initialValues?.process_stage || defaultStage || '',
+    responsible: initialValues?.responsible || '',
+    detail: initialValues?.detail || '',
+    observations: initialValues?.observations || '',
   });
 
   const [files, setFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+
+  useEffect(() => {
+    setForm({
+      action_type: initialValues?.action_type || '',
+      process_stage: initialValues?.process_stage || defaultStage || '',
+      responsible: initialValues?.responsible || '',
+      detail: initialValues?.detail || '',
+      observations: initialValues?.observations || '',
+    });
+    setFiles([]);
+  }, [initialValues, defaultStage, mode, followupId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -79,29 +102,51 @@ function SeguimientoForm({
       setSubmitting(true);
 
       const payload = {
-        case_id: caseId,
-        action_date: todayISODate(),
         action_type: form.action_type,
         process_stage: form.process_stage,
-        // stage_status eliminado - cada followup representa una acción completada
         detail: form.detail,
         responsible: form.responsible || 'Sistema',
         observations: form.observations,
       };
 
-      const followup = await createFollowup(payload);
+      let targetFollowupId = followupId || '';
 
-      if (files.length) {
-        await uploadEvidenceFiles({ caseId, followupId: followup.id, files });
+      if (mode === 'edit') {
+        if (!targetFollowupId) {
+          throw new Error('Falta followupId para editar la acción');
+        }
+        await updateFollowup(targetFollowupId, payload);
+      } else {
+        const created = await createFollowup({
+          case_id: caseId,
+          action_date: todayISODate(),
+          ...payload,
+        });
+        targetFollowupId = created.id;
+      }
+
+      if (files.length && targetFollowupId) {
+        await uploadEvidenceFiles({
+          caseId,
+          followupId: targetFollowupId,
+          files,
+        });
       }
 
       push({
         type: 'success',
-        title: 'Acción registrada',
+        title: mode === 'edit' ? 'Acción actualizada' : 'Acción registrada',
         message: `${payload.process_stage} · ${payload.action_type}`,
       });
 
-      setForm((s) => ({ ...s, action_type: '', detail: '', observations: '' }));
+      if (mode === 'create') {
+        setForm((s) => ({
+          ...s,
+          action_type: '',
+          detail: '',
+          observations: '',
+        }));
+      }
       setFiles([]);
       onSaved?.();
     } catch (e2) {
@@ -114,7 +159,16 @@ function SeguimientoForm({
     } finally {
       setSubmitting(false);
     }
-  }, [caseId, form, files, canSubmit, push, onSaved]);
+  }, [
+    caseId,
+    form,
+    files,
+    canSubmit,
+    push,
+    onSaved,
+    mode,
+    followupId,
+  ]);
 
   return (
     <form
@@ -281,7 +335,11 @@ function SeguimientoForm({
           disabled={!canSubmit || submitting}
           className="px-4 py-2 rounded-xl bg-brand-600 text-white text-sm font-semibold disabled:opacity-50"
         >
-          {submitting ? 'Guardando…' : 'Guardar acción'}
+          {submitting
+            ? 'Guardando…'
+            : mode === 'edit'
+              ? 'Guardar cambios'
+              : 'Guardar acción'}
         </button>
       </div>
     </form>

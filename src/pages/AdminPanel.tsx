@@ -59,6 +59,7 @@ import {
   updateStageSla,
   deleteStageSla,
 } from '../api/admin';
+import PageHeader from '../components/PageHeader';
 
 const TABS = [
   { id: 'branding', label: 'Colegio', icon: Palette },
@@ -789,31 +790,26 @@ export default function AdminPanel() {
 
         <main className="min-w-0 flex-1 space-y-4">
           <header className="glass-panel p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-xs uppercase tracking-wide text-slate-500">
-                  Panel /{' '}
-                  {visibleTabs.find((t) => t.id === tab)?.label ||
-                    'Administración'}
-                </p>
-                <h1 className="text-xl font-semibold text-slate-900">
-                  {tenant?.name || 'Administración'}
-                </h1>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={load}
-                  variant="secondary"
-                  size="sm"
-                  leftIcon={<RefreshCw size={14} />}
-                >
-                  Recargar
-                </Button>
-                <span className="rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-700">
-                  {user?.email}
-                </span>
-              </div>
-            </div>
+            <PageHeader
+              title={tenant?.name || 'Administración'}
+              subtitle={`Panel / ${visibleTabs.find((t) => t.id === tab)?.label || 'Administración'}`}
+              actions={
+                <>
+                  <Button
+                    onClick={load}
+                    variant="secondary"
+                    size="sm"
+                    leftIcon={<RefreshCw size={14} />}
+                  >
+                    Recargar
+                  </Button>
+                  <span className="rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-700">
+                    {user?.email}
+                  </span>
+                </>
+              }
+              className="px-0 mb-0"
+            />
             <div className="mt-3 lg:hidden overflow-x-auto pb-1">
               <div className="flex min-w-max gap-2">
                 {visibleTabs.map((t) => {

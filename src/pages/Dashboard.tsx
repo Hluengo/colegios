@@ -35,6 +35,7 @@ import InlineError from '../components/InlineError';
 import { getCaseStatus } from '../utils/caseStatus';
 import { useTenant } from '../context/TenantContext';
 import { queryKeys } from '../lib/queryClient';
+import PageHeader from '../components/PageHeader';
 
 const COLORS = [
   '#dc2626',
@@ -269,9 +270,10 @@ export default function Dashboard() {
 
   return (
     <div className="container space-y-6 sm:space-y-8 px-1 sm:px-0">
-      <p className="text-xs sm:text-sm text-slate-600 font-medium">
-        Resumen Operativo de Convivencia Escolar · Año lectivo 2026
-      </p>
+      <PageHeader
+        title="Dashboard"
+        subtitle="Resumen Operativo de Convivencia Escolar · Año lectivo 2026"
+      />
 
       {/* KPIs – FILA 1 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">

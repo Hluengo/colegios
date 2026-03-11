@@ -9,6 +9,21 @@ import { useTenant } from '../context/TenantContext';
 import { CARGOS } from '../constants/cargos';
 import { emitDataUpdated } from '../utils/refreshBus';
 
+function normalizeConductType(value) {
+  const base = String(value || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[\s_-]+/g, '');
+
+  if (base === 'leve') return 'leve';
+  if (base === 'grave') return 'grave';
+  if (base === 'muygrave') return 'muygrave';
+  if (base.startsWith('gravisim')) return 'gravisima';
+  return base;
+}
+
 export default function NuevoCasoModal({ onClose, onSaved }) {
   const timeFieldRef = useRef(null);
   const [fecha, setFecha] = useState('');
@@ -191,15 +206,17 @@ export default function NuevoCasoModal({ onClose, onSaved }) {
     const map = {};
     for (const r of catalogRows || []) {
       if (!r.conduct_type) continue;
-      if (!map[r.conduct_type]) map[r.conduct_type] = [];
-      map[r.conduct_type].push({
+      const normalizedType = normalizeConductType(r.conduct_type);
+      if (!normalizedType) continue;
+      if (!map[normalizedType]) map[normalizedType] = [];
+      map[normalizedType].push({
         text: r.conduct_category,
         sort: r.sort_order ?? 999,
       });
     }
     for (const k of Object.keys(map)) {
       map[k].sort((a, b) => a.sort - b.sort);
-      map[k] = map[k].map((x) => x.text);
+      map[k] = Array.from(new Set(map[k].map((x) => x.text).filter(Boolean)));
     }
     return map;
   }, [catalogRows]);
@@ -526,7 +543,7 @@ export default function NuevoCasoModal({ onClose, onSaved }) {
             {/* CONDUCTAS (desde BD) */}
             {tipo && !loading && !error && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {(categoriasByType[tipo] || []).map((texto) => (
+                {(categoriasByType[normalizeConductType(tipo)] || []).map((texto) => (
                   <button
                     key={texto}
                     type="button"

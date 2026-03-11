@@ -1,10 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ModalShell from './ModalShell';
-import { startSeguimiento } from '../api/db';
+import { startSeguimiento, updateCase } from '../api/db';
 import { emitDataUpdated } from '../utils/refreshBus';
 import { getStudentName } from '../utils/studentName';
-import InvolucradosListPlaceholder from './InvolucradosListPlaceholder';
+import InvolucradosList from './InvolucradosList';
 import {
   ArrowLeft,
   FileText,
@@ -13,8 +13,12 @@ import {
   Users,
   UserRound,
   GraduationCap,
+  Edit2,
+  Save,
+  X,
 } from 'lucide-react';
 import { getCaseStatus, getCaseStatusLabel } from '../utils/caseStatus';
+import { logger } from '../utils/logger';
 
 type CaseLike = {
   id: string;
@@ -79,13 +83,18 @@ function InfoCard({
 export default function CaseDetailModal({
   caso,
   onClose,
+  onUpdated,
   mode = 'active', // 'active' | 'closed'
 }: {
   caso: CaseLike | null;
   onClose: () => void;
+  onUpdated?: (updatedCase: CaseLike) => void;
   mode?: 'active' | 'closed';
 }) {
   const navigate = useNavigate();
+  const [editando, setEditando] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+  const [draft, setDraft] = useState<Partial<CaseLike>>({});
 
   // Normalizamos estado (si no viene, asumimos Reportado)
   const estado = getCaseStatusLabel(caso, 'Reportado');
@@ -98,25 +107,67 @@ export default function CaseDetailModal({
     [caso],
   );
 
-  const subtitle = useMemo(() => {
-    if (!caso) return '';
-    const curso = caso.course_incident || '';
-    const tip = caso.conduct_type || '';
-    return [tip, curso, estado].filter(Boolean).join(' • ');
-  }, [caso, estado]);
-
   if (!caso) return null;
+
+  const viewCase = { ...caso, ...draft } as CaseLike;
+  const subtitle = [viewCase.conduct_type || '', viewCase.course_incident || '', estado]
+    .filter(Boolean)
+    .join(' • ');
+
+  function iniciarEdicion() {
+    setDraft({
+      short_description: caso.short_description || '',
+      incident_date: caso.incident_date || '',
+      incident_time: caso.incident_time || '',
+      course_incident: caso.course_incident || '',
+      conduct_type: caso.conduct_type || '',
+      responsible: caso.responsible || '',
+    });
+    setEditando(true);
+  }
+
+  function cancelarEdicion() {
+    setDraft({});
+    setEditando(false);
+  }
+
+  async function guardarEdicion() {
+    try {
+      setGuardando(true);
+      const payload = {
+        short_description: draft.short_description ?? '',
+        incident_date: draft.incident_date ?? '',
+        incident_time: draft.incident_time ?? '',
+        course_incident: draft.course_incident ?? '',
+        conduct_type: draft.conduct_type ?? '',
+        responsible: draft.responsible ?? '',
+      };
+
+      const updated = await updateCase(caso.id, payload);
+      emitDataUpdated();
+      onUpdated?.({ ...caso, ...updated });
+      setEditando(false);
+      setDraft({});
+    } catch (e) {
+      logger.error('Error actualizando caso desde modal:', e);
+      alert('No se pudo actualizar el caso. Intenta nuevamente.');
+    } finally {
+      setGuardando(false);
+    }
+  }
 
   const footer = (
     <div className="flex items-center justify-end gap-2">
       <button
         onClick={async () => {
+          if (editando) return;
           if (isReportado) {
             await startSeguimiento(caso.id);
             emitDataUpdated();
           }
           navigate(`/seguimientos/${caso.id}`);
         }}
+        disabled={guardando || editando}
         className="px-5 py-2.5 rounded-xl bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700 tap-target w-full sm:w-auto"
       >
         {isClosed
@@ -159,12 +210,44 @@ export default function CaseDetailModal({
                       {title}
                     </h2>
                     <Badge tone="slate">
-                      ID {caso.legacy_case_number || caso.id}
+                      ID {viewCase.legacy_case_number || viewCase.id}
                     </Badge>
+                    {!isClosed && !editando && (
+                      <button
+                        type="button"
+                        onClick={iniciarEdicion}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-brand-50"
+                      >
+                        <Edit2 size={12} />
+                        Editar caso
+                      </button>
+                    )}
+                    {editando && (
+                      <div className="inline-flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={guardarEdicion}
+                          disabled={guardando}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-brand-600 text-white text-xs font-semibold hover:bg-brand-700 disabled:opacity-60"
+                        >
+                          <Save size={12} />
+                          {guardando ? 'Guardando...' : 'Guardar'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={cancelarEdicion}
+                          disabled={guardando}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-60"
+                        >
+                          <X size={12} />
+                          Cancelar
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-500">
-                    {caso.conduct_type ? (
-                      <Badge tone="amber">{caso.conduct_type}</Badge>
+                    {viewCase.conduct_type ? (
+                      <Badge tone="amber">{viewCase.conduct_type}</Badge>
                     ) : null}
                     <span className="truncate">{subtitle}</span>
                   </div>
@@ -186,33 +269,118 @@ export default function CaseDetailModal({
                 </h3>
               </div>
               <div className="px-5 py-5">
-                <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
-                  {caso.short_description || 'Sin descripción'}
-                </p>
+                {editando ? (
+                  <textarea
+                    value={draft.short_description || ''}
+                    onChange={(e) =>
+                      setDraft((prev) => ({
+                        ...prev,
+                        short_description: e.target.value,
+                      }))
+                    }
+                    className="w-full min-h-[140px] rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-200"
+                    placeholder="Descripción de los hechos"
+                  />
+                ) : (
+                  <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
+                    {viewCase.short_description || 'Sin descripción'}
+                  </p>
+                )}
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              <InfoCard
-                icon={Calendar}
-                label="Fecha del hecho"
-                value={caso.incident_date}
-              />
-              <InfoCard
-                icon={Clock}
-                label="Hora registrada"
-                value={caso.incident_time}
-              />
-              <InfoCard
-                icon={GraduationCap}
-                label="Curso"
-                value={caso.course_incident}
-              />
-              <InfoCard
-                icon={UserRound}
-                label="Responsable"
-                value={caso.responsible || '—'}
-              />
+              {editando ? (
+                <>
+                  <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      <Calendar size={14} /> Fecha del hecho
+                    </div>
+                    <input
+                      type="date"
+                      value={draft.incident_date || ''}
+                      onChange={(e) =>
+                        setDraft((prev) => ({
+                          ...prev,
+                          incident_date: e.target.value,
+                        }))
+                      }
+                      className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                    />
+                  </div>
+                  <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      <Clock size={14} /> Hora registrada
+                    </div>
+                    <input
+                      type="time"
+                      value={draft.incident_time || ''}
+                      onChange={(e) =>
+                        setDraft((prev) => ({
+                          ...prev,
+                          incident_time: e.target.value,
+                        }))
+                      }
+                      className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                    />
+                  </div>
+                  <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      <GraduationCap size={14} /> Curso
+                    </div>
+                    <input
+                      type="text"
+                      value={draft.course_incident || ''}
+                      onChange={(e) =>
+                        setDraft((prev) => ({
+                          ...prev,
+                          course_incident: e.target.value,
+                        }))
+                      }
+                      className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                    />
+                  </div>
+                  <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      <UserRound size={14} /> Responsable
+                    </div>
+                    <input
+                      type="text"
+                      value={draft.responsible || ''}
+                      onChange={(e) =>
+                        setDraft((prev) => ({
+                          ...prev,
+                          responsible: e.target.value,
+                        }))
+                      }
+                      className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <InfoCard
+                    icon={Calendar}
+                    label="Fecha del hecho"
+                    value={viewCase.incident_date}
+                  />
+                  <InfoCard
+                    icon={Clock}
+                    label="Hora registrada"
+                    value={viewCase.incident_time}
+                  />
+                  <InfoCard
+                    icon={GraduationCap}
+                    label="Curso"
+                    value={viewCase.course_incident}
+                  />
+                  <InfoCard
+                    icon={UserRound}
+                    label="Responsable"
+                    value={viewCase.responsible || '—'}
+                  />
+                </>
+              )}
             </div>
           </div>
 
@@ -256,7 +424,7 @@ export default function CaseDetailModal({
                   <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
                     Personas registradas
                   </div>
-                  <InvolucradosListPlaceholder casoId={caso.id} />
+                  <InvolucradosList casoId={caso.id} readOnly={isClosed} />
                 </div>
               </div>
             </div>

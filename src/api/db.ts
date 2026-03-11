@@ -1137,7 +1137,11 @@ export async function addInvolucrado(payload) {
     }
 
     const { data, error } = await withRetry(() =>
-      supabase.from('involucrados').insert([toInsert]).select('id, case_id, student_id, nombre, rol, metadata, created_at').single(),
+      supabase
+        .from('involucrados')
+        .insert([toInsert])
+        .select('id, case_id, nombre, rol, curso, tenant_id, created_at')
+        .single(),
     );
     if (error) throw error;
     return data;
@@ -1154,7 +1158,7 @@ export async function updateInvolucrado(id, patch) {
         .from('involucrados')
         .update(patch)
         .eq('id', id)
-        .select('id, case_id, student_id, nombre, rol, metadata, created_at')
+        .select('id, case_id, nombre, rol, curso, tenant_id, created_at')
         .single(),
     );
     if (error) throw error;
@@ -1168,7 +1172,12 @@ export async function updateInvolucrado(id, patch) {
 export async function deleteInvolucrado(id) {
   try {
     const { data, error } = await withRetry(() =>
-      supabase.from('involucrados').delete().eq('id', id).select('id, case_id, nombre, rol').single(),
+      supabase
+        .from('involucrados')
+        .delete()
+        .eq('id', id)
+        .select('id, case_id, nombre, rol, curso')
+        .single(),
     );
     if (error) throw error;
     return data;
@@ -1351,7 +1360,7 @@ export async function getInvolucrados(caseId) {
   if (!caseId) return [];
   const { data, error } = await supabase
     .from('involucrados')
-    .select('id, case_id, student_id, nombre, rol, metadata, created_at')
+    .select('id, case_id, nombre, rol, curso, tenant_id, created_at')
     .eq('case_id', caseId)
     .order('created_at', { ascending: true });
 

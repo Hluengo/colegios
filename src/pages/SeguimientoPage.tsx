@@ -16,6 +16,7 @@ import { useDueProcess } from '../hooks/useDueProcess';
 import { emitDataUpdated as _emitDataUpdated } from '../utils/refreshBus';
 
 import { useToast } from '../hooks/useToast';
+import PageHeader from '../components/PageHeader';
 
 export default function SeguimientoPage({
   casoId: casoIdProp = null,
@@ -35,6 +36,7 @@ export default function SeguimientoPage({
   const [openStage, setOpenStage] = useState(null);
 
   const [stageToAdd, setStageToAdd] = useState(null);
+  const [followupToEdit, setFollowupToEdit] = useState<any>(null);
 
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -138,23 +140,31 @@ export default function SeguimientoPage({
   return (
     <div className="h-full w-full">
       <div className="max-w-7xl mx-auto space-y-6 px-1 sm:px-0">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-3">
-          <button
-            onClick={() => setStageToAdd(currentStageKey || effectiveStages[0])}
-            className="px-4 py-2 rounded-xl bg-brand-700 text-white text-sm font-semibold shadow-sm hover:bg-brand-800 w-full sm:w-auto tap-target"
-          >
-            Registrar Acción
-          </button>
+        <PageHeader
+          title="Seguimiento del Caso"
+          subtitle={caso ? `Caso #${caso.legacy_case_number || caso.id}` : undefined}
+          actions={
+            <>
+              <button
+                onClick={() =>
+                  setStageToAdd(currentStageKey || effectiveStages[0])
+                }
+                className="px-4 py-2 rounded-xl bg-brand-700 text-white text-sm font-semibold shadow-sm hover:bg-brand-800 w-full sm:w-auto tap-target"
+              >
+                Registrar Acción
+              </button>
 
-          {!readOnly && (
-            <button
-              onClick={irACierreCaso}
-              className="px-4 py-2 rounded-xl bg-emerald-700 text-white text-sm font-semibold shadow-sm hover:bg-emerald-800 w-full sm:w-auto tap-target"
-            >
-              Finalizar y Cerrar Caso
-            </button>
-          )}
-        </div>
+              {!readOnly && (
+                <button
+                  onClick={irACierreCaso}
+                  className="px-4 py-2 rounded-xl bg-emerald-700 text-white text-sm font-semibold shadow-sm hover:bg-emerald-800 w-full sm:w-auto tap-target"
+                >
+                  Finalizar y Cerrar Caso
+                </button>
+              )}
+            </>
+          }
+        />
 
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
           <ProcesoVisualizer
@@ -218,6 +228,11 @@ export default function SeguimientoPage({
                             key={seg.id}
                             seg={seg}
                             readOnly={readOnly}
+                            onEdit={
+                              readOnly
+                                ? undefined
+                                : (selected) => setFollowupToEdit(selected)
+                            }
                           />
                         ))}
 
@@ -319,6 +334,63 @@ export default function SeguimientoPage({
 
                   refresh();
 
+                  setRefreshKey((k) => k + 1);
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!readOnly && followupToEdit && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 p-2 sm:p-4 pt-4 sm:pt-8 overflow-y-auto"
+          style={{
+            paddingTop: 'max(1rem, env(safe-area-inset-top))',
+            paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))',
+            paddingLeft: 'max(0.5rem, env(safe-area-inset-left))',
+            paddingRight: 'max(0.5rem, env(safe-area-inset-right))',
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Editar acción"
+        >
+          <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl border border-slate-200 relative">
+            <button
+              onClick={() => setFollowupToEdit(null)}
+              className="absolute top-4 right-4 h-9 w-9 rounded-full border border-slate-200 bg-white text-slate-600 hover:text-slate-800 hover:border-slate-300 hover:bg-brand-50 shadow-sm flex items-center justify-center tap-target"
+              aria-label="Cerrar"
+            >
+              X
+            </button>
+
+            <div className="px-4 sm:px-6 pt-6 pb-2">
+              <h3 className="text-lg font-semibold text-slate-900">
+                Editar acción
+              </h3>
+
+              <p className="text-sm text-slate-600 mt-1">
+                Etapa: {followupToEdit.process_stage}
+              </p>
+            </div>
+
+            <div className="px-4 sm:px-6 pb-6">
+              <SeguimientoForm
+                caseId={caseId}
+                mode="edit"
+                followupId={followupToEdit.id}
+                defaultStage={followupToEdit.process_stage}
+                stages={effectiveStages}
+                initialValues={{
+                  action_type: followupToEdit.action_type || '',
+                  process_stage: followupToEdit.process_stage || '',
+                  responsible: followupToEdit.responsible || '',
+                  detail: followupToEdit.detail || '',
+                  observations: followupToEdit.observations || '',
+                }}
+                onSaved={() => {
+                  setFollowupToEdit(null);
+                  refresh();
                   setRefreshKey((k) => k + 1);
                 }}
               />

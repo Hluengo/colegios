@@ -6,6 +6,7 @@ interface InvolucradoItem {
   id: string;
   nombre: string;
   rol: string;
+  curso?: string | null;
   metadata?: { curso?: string };
   created_at?: string;
 }
@@ -57,7 +58,7 @@ export default function InvolucradosListPlaceholder({
             <div>
               <div className="font-medium">{it.nombre}</div>
               <div className="text-xs text-gray-600">
-                {it.rol} {it.metadata?.curso ? `· ${it.metadata.curso}` : ''}
+                {it.rol} {it.curso || it.metadata?.curso ? `· ${it.curso || it.metadata?.curso}` : ''}
               </div>
             </div>
             <div className="text-xs text-gray-500">

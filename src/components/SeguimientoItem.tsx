@@ -32,9 +32,11 @@ type Seguimiento = {
 function SeguimientoItem({
   seg,
   readOnly = false,
+  onEdit,
 }: {
   seg: Seguimiento;
   readOnly?: boolean;
+  onEdit?: (seg: Seguimiento) => void;
 }) {
   const [evidencias, setEvidencias] = useState<EvidenceRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -143,9 +145,20 @@ function SeguimientoItem({
         <div className="flex justify-between items-start">
           <p className="text-sm font-bold text-slate-900">{seg.action_type}</p>
 
-          <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
-            Completada
-          </span>
+          <div className="flex items-center gap-2">
+            {!readOnly && onEdit && (
+              <button
+                type="button"
+                onClick={() => onEdit(seg)}
+                className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200"
+              >
+                Editar
+              </button>
+            )}
+            <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+              Completada
+            </span>
+          </div>
         </div>
 
         <p className="text-xs text-slate-500 mt-1">

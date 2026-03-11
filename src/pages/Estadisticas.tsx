@@ -21,6 +21,7 @@ import useConductCatalog from '../hooks/useConductCatalog';
 import { onDataUpdated } from '../utils/refreshBus';
 import { useToast } from '../hooks/useToast';
 import { logger } from '../utils/logger';
+import PageHeader from '../components/PageHeader';
 
 const COLORS = ['#16a34a', '#ca8a04', '#7c3aed', '#dc2626'];
 
@@ -266,22 +267,18 @@ export default function Estadisticas() {
 
   return (
     <div className="container space-y-8 print-container pb-8 px-1 sm:px-0">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">
-            Estadísticas de Convivencia Escolar
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Análisis de datos, KPIs y tendencias
-          </p>
-        </div>
-        <button
-          onClick={handleExportPDF}
-          className="btn-primary bg-brand-600 hover:bg-brand-700 text-white transition shadow-sm px-4 py-2 text-sm font-medium w-full sm:w-auto tap-target"
-        >
-          Exportar PDF
-        </button>
-      </div>
+      <PageHeader
+        title="Estadísticas de Convivencia Escolar"
+        subtitle="Análisis de datos, KPIs y tendencias"
+        actions={
+          <button
+            onClick={handleExportPDF}
+            className="btn-primary bg-brand-600 hover:bg-brand-700 text-white transition shadow-sm px-4 py-2 text-sm font-medium w-full sm:w-auto tap-target"
+          >
+            Exportar PDF
+          </button>
+        }
+      />
 
       {/* FILTROS */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-6">
