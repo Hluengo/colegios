@@ -69,10 +69,13 @@ export default function Sidebar({
     }
   }, [collapsed]);
 
+  const shouldLoadSeguimientos =
+    Boolean(tenantId) && expandedSeguimientos && (!collapsed || mobileOpen);
+
   const { data: enSeguimiento } = useQuery({
     queryKey: queryKeys.cases.seguimiento(tenantId || ''),
     queryFn: () => (tenantId ? getCasesEnSeguimiento({ tenantId }) : []),
-    enabled: Boolean(tenantId),
+    enabled: shouldLoadSeguimientos,
   });
 
   // Subscribe to refresh bus and invalidate query cache

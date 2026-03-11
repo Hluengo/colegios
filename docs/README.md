@@ -1,0 +1,37 @@
+# Documentacion
+
+Esta carpeta centraliza la documentacion operativa y tecnica del proyecto.
+
+## Guias principales
+
+- [BRANDING_SETUP.md](BRANDING_SETUP.md)
+- [CHANGELOG.md](CHANGELOG.md)
+- [SECURITY_FIXES.md](SECURITY_FIXES.md)
+- [OPTIMIZATION_SUMMARY.md](OPTIMIZATION_SUMMARY.md)
+- [OPTIMIZATION_COMPLETE.md](OPTIMIZATION_COMPLETE.md)
+- [PERFORMANCE_TESTING_REPORT.md](PERFORMANCE_TESTING_REPORT.md)
+
+## Auditorias
+
+- [ARCHITECTURE_AUDIT_COMPLETE.md](ARCHITECTURE_AUDIT_COMPLETE.md)
+- [AUDIT_100_PERFECT.md](AUDIT_100_PERFECT.md)
+- [FULLSTACK_COHERENCE_AUDIT.md](FULLSTACK_COHERENCE_AUDIT.md)
+- [SUPABASE_HEALTH_AUDIT.md](SUPABASE_HEALTH_AUDIT.md)
+- [SUPABASE_VSCODE.md](SUPABASE_VSCODE.md)
+- [UI_COMPONENTS_REVIEW.md](UI_COMPONENTS_REVIEW.md)
+
+## Reportes por prioridad
+
+- [PRIORITY_1_COMPLETION_REPORT.md](PRIORITY_1_COMPLETION_REPORT.md)
+- [PRIORITY_2_COMPLETION_REPORT.md](PRIORITY_2_COMPLETION_REPORT.md)
+- [PRIORITY_3_COMPLETION_REPORT.md](PRIORITY_3_COMPLETION_REPORT.md)
+
+## Subcarpetas
+
+- [plans](plans)
+- [pr-descriptions](pr-descriptions)
+- [supabase](supabase)
+
+## Nota
+
+`README.md` se mantiene en la raiz para no romper la portada del repositorio en GitHub.

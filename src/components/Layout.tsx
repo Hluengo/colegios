@@ -211,7 +211,7 @@ export default function Layout() {
         </div>
 
         {/* SIDEBAR */}
-        <Sidebar />
+        {!isMobile && <Sidebar />}
 
         {/* CONTENT AREA */}
         <main
