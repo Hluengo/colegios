@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Folder, Plus } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
@@ -83,11 +83,13 @@ export default function CasosActivos() {
         tenantId: tenantId || null,
       }),
     enabled: Boolean(tenantId),
+    placeholderData: keepPreviousData,
   });
 
   const activos = useMemo(() => casesPage?.rows || [], [casesPage]);
   const totalCasos = casesPage?.total || 0;
   const caseIds = useMemo(() => activos.map((c) => c.id), [activos]);
+  const caseIdsKey = useMemo(() => caseIds.join(','), [caseIds]);
 
   const {
     data: plazos = new Map(),
@@ -95,7 +97,7 @@ export default function CasosActivos() {
     error: errorPlazos,
     refetch: refetchPlazos,
   } = useQuery({
-    queryKey: ['plazos', 'resumen-many', tenantId, ...caseIds],
+    queryKey: ['plazos', 'resumen-many', tenantId, caseIdsKey],
     queryFn: () => getPlazosResumenMany(caseIds),
     enabled: Boolean(tenantId) && caseIds.length > 0,
   });
@@ -206,7 +208,7 @@ export default function CasosActivos() {
           await startSeguimiento(caseId);
           emitDataUpdated();
         }
-        navigate(`/seguimientos/${caseId}`);
+                casos.map((caso) => {
       } catch (e) {
         push({
           type: 'error',
@@ -231,8 +233,6 @@ export default function CasosActivos() {
     },
     [setPage],
   );
-
-  const pagedCasos = useMemo(() => casos, [casos]);
 
   return (
     <div className="h-full p-2">

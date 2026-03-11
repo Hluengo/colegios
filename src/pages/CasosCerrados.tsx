@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Eye, FileText } from 'lucide-react';
 import { getCaseFollowups, getCasesPage } from '../api/db';
@@ -50,6 +50,7 @@ export default function CasosCerrados() {
         tenantId: tenantId || null,
       }),
     enabled: Boolean(tenantId),
+    placeholderData: keepPreviousData,
   });
 
   const casos = useMemo(() => closedCases?.rows || [], [closedCases]);
@@ -71,7 +72,6 @@ export default function CasosCerrados() {
 
   const totalPages = Math.max(1, Math.ceil(totalCasos / pageSize));
   const currentPage = Math.min(page, totalPages);
-  const pagedCasos = useMemo(() => casos, [casos]);
 
   if (loading) {
     return <p className="text-gray-500">Cargando casos cerrados…</p>;
@@ -217,7 +217,7 @@ export default function CasosCerrados() {
           )}
 
           {!loading &&
-            pagedCasos.map((caso) => {
+            casos.map((caso) => {
               return (
                 <div
                   key={caso.id}

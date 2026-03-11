@@ -118,15 +118,21 @@ export default function Dashboard() {
     () => allCases.filter((c) => getCaseStatus(c, '') === 'cerrado'),
     [allCases],
   );
+  const caseStatusById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const c of allCases) {
+      map.set(c.id, getCaseStatus(c, ''));
+    }
+    return map;
+  }, [allCases]);
   const alertasPlazo = useMemo(
     () =>
       (plazos || []).filter((a) => {
         const casoId = a.case_id;
         if (!casoId) return true;
-        const caso = allCases.find((c) => c.id === casoId);
-        return getCaseStatus(caso, '') !== 'cerrado';
+        return caseStatusById.get(casoId) !== 'cerrado';
       }),
-    [allCases, plazos],
+    [caseStatusById, plazos],
   );
 
   useEffect(() => {

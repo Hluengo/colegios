@@ -74,6 +74,8 @@ export default function Layout() {
   }, [push]);
 
   useEffect(() => {
+    if (!tenant?.id) return;
+
     let timerId: ReturnType<typeof setTimeout> | null = null;
 
     const notifyRefresh = () => {
@@ -135,7 +137,7 @@ export default function Layout() {
       if (timerId) clearTimeout(timerId);
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [tenant?.id]);
 
   // Detect viewport changes to handle mobile sidebar visibility
   useEffect(() => {
